@@ -151,9 +151,10 @@ add_dependencies(tuw_geometry
 # add_dependencies(tuw_geometry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(tuw_geometry_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(tuw_geometry
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
+ )
 
 #############
 ## Install ##
