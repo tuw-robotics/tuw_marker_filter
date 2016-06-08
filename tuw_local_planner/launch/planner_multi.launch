@@ -1,0 +1,60 @@
+<launch>
+  <arg name="world" default="cave" />
+  <arg name="stage" default="0" />
+  <arg name="mode" default="0" />
+  <group if="$(arg stage)">
+    <include file="$(find tuw_stage)/launch/load_world.launch">
+      <arg name="world" default="$(arg world)" />
+    </include>
+  </group>
+  
+  <group ns="robot_0">
+    <include file="$(find tuw_local_planner)/launch/planner.launch">
+      <arg name="stage" default="0" />
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="plot_data" default="false" />
+    </include>
+  </group>
+  <group ns="robot_1">
+    <include file="$(find tuw_local_planner)/launch/planner.launch">
+      <arg name="stage" default="0" />
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="plot_data" default="false" />
+    </include>
+  </group>
+  <group ns="robot_2">
+    <include file="$(find tuw_local_planner)/launch/planner.launch">
+      <arg name="stage" default="0" />
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="plot_data" default="false" />
+    </include>
+  </group>
+  <group ns="robot_3">
+    <include file="$(find tuw_local_planner)/launch/planner.launch">
+      <arg name="stage" default="0" />
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="plot_data" default="false" />
+    </include>
+  </group>
+  <group ns="robot_4">
+    <include file="$(find tuw_local_planner)/launch/planner.launch">
+      <arg name="stage" default="0" />
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="plot_data" default="false" />
+    </include>
+  </group>
+  <group ns="robot_5">
+    <include file="$(find tuw_local_planner)/launch/planner.launch">
+      <arg name="stage" default="0" />
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="plot_data" default="false" />
+    </include>
+  </group>
+  <group ns="robot_6">
+    <include file="$(find tuw_local_planner)/launch/planner.launch">
+      <arg name="stage" default="0" />
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="plot_data" default="false" />
+    </include>
+  </group>
+</launch>

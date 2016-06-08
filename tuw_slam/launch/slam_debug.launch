@@ -1,0 +1,42 @@
+<launch>
+  <!-- Parameters -->
+  <arg name="world" default="fiducial2" />
+  <arg name="sigma_radial" default="0.2" />
+  <arg name="sigma_polar" default="0.0" />
+  <arg name="sigma_azimuthal" default="0.1" />
+  <arg name="sigma_roll" default="0.0" />
+  <arg name="sigma_pitch" default="0.0" />
+  <arg name="sigma_yaw" default="0.05" />
+  <arg name="plot_data" default="false" />
+  <arg name="planner_mode" default="0" />
+
+  <!-- Remapping -->
+  <arg name="laser" default="base_scan" />
+  <arg name="fiducial_clear" default="base_fiducial_detection" />
+  <arg name="fiducial_noise" default="fiducial_noise" />
+  <arg name="cmd" default="cmd_vel" />
+
+  <node name="stage_ros" pkg="stage_ros" type="stageros" args="$(find stage_ros)/world/$(arg world).world"/>
+
+  <node pkg="tuw_noise" type="tuw_noise.py" name="tuw_noise">
+      <param name="sigma_radial" value="$(arg sigma_radial)" />
+      <param name="sigma_polar" value="$(arg sigma_polar)" />
+      <param name="sigma_azimuthal" value="$(arg sigma_azimuthal)" />
+      <param name="sigma_roll" value="$(arg sigma_roll)" />
+      <param name="sigma_pitch" value="$(arg sigma_pitch)" />
+      <param name="sigma_yaw" value="$(arg sigma_yaw)" />
+      <param name="plot_data" value="$(arg plot_data)" />
+      <remap from="fiducial" to="$(arg fiducial_clear)" />
+  </node>
+
+  <node pkg="tuw_local_planner" type="tuw_local_planner_node" name="local_planner" output="screen">
+      <param name="plot_data" value="$(arg plot_data)" />
+      <param name="mode" value="$(arg planner_mode)" />
+      <remap from="laser" to="$(arg laser)" />
+      <remap from="fiducial" to="$(arg fiducial_noise)" />
+  </node>
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tuw_slam)/rviz/config.rviz"/>
+</launch>

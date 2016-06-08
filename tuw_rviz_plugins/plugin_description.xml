@@ -1,0 +1,10 @@
+<library path="lib/libtuw_rviz_plugins">
+  <class name="tuw_rviz_plugins/FiducialDetection"
+         type="tuw_rviz_plugins::DisplayFiducialDetection"
+         base_class_type="rviz::Display">
+    <description>
+      Displays position and orientation of fiducials from sensor_msgs/FiducialDetection messages.
+    </description>
+    <message_type>sensor_msgs/FiducialDetection</message_type>
+  </class>
+</library>

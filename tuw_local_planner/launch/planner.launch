@@ -1,0 +1,16 @@
+<launch>
+  <arg name="world" default="fiducial" />
+  <arg name="mode" default="0" />
+  <arg name="plot_data" default="true" />
+
+  <node name="stage_ros" pkg="stage_ros" type="stageros" args="$(find stage_ros)/world/$(arg world).world"/>
+
+  <node pkg="tuw_local_planner" type="tuw_local_planner_node" name="local_planner" output="screen">
+      <param name="mode" value="$(arg mode)" />
+      <param name="plot_data" value="$(arg plot_data)" />
+      <remap from="laser" to="base_scan" />
+      <remap from="fiducial" to="base_fiducial_detection" />
+  </node>
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+</launch>
