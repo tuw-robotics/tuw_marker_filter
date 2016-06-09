@@ -55,9 +55,9 @@ void LocalPlanner::plotLocal() {
         figure_local_.circle ( p, 1, Figure::red );
     }
 
-    /// plot found fiducials
-    for ( size_t i = 0; i < measurement_fiducial_.size(); i++ ) {
-        Point2D p = measurement_fiducial_.getSensorPose().tf() * measurement_fiducial_[i].pose.position();
+    /// plot found markers
+    for ( size_t i = 0; i < measurement_marker_.size(); i++ ) {
+        Point2D p = measurement_marker_.getSensorPose().tf() * measurement_marker_[i].pose.position();
         figure_local_.circle ( p, 3, Figure::blue );
     }
 

@@ -30,7 +30,7 @@
 #ifndef VISUAL_FIDUCIAL_DETECTION_H
 #define VISUAL_FIDUCIAL_DETECTION_H
 
-#include <sensor_msgs/FiducialDetection.h>
+#include <sensor_msgs/MarkerDetection.h>
 #include <rviz/ogre_helpers/shape.h>
 
 namespace Ogre
@@ -59,7 +59,7 @@ public:
   virtual ~VisualFiducialDetection();
 
   // Configure the visual to show the data in the message.
-  void setMessage( const sensor_msgs::FiducialDetection::ConstPtr& msg );
+  void setMessage( const sensor_msgs::MarkerDetection::ConstPtr& msg );
 
   // Set the pose of the coordinate frame the message refers to.
   // These could be done inside setMessage(), but that would require

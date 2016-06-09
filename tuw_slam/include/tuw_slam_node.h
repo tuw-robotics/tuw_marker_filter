@@ -9,7 +9,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
-#include <sensor_msgs/FiducialDetection.h>
+#include <sensor_msgs/MarkerDetection.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <dynamic_reconfigure/server.h>
@@ -47,7 +47,7 @@ private:
     tuw::Pose2D origin_;                                                                                /// origin x, y, alpha of the slam created map in the world (simulation only)
 
     void callbackCmd ( const geometry_msgs::Twist& );                                                   /// callback function to catch motion commands
-    void callbackFiducial ( const sensor_msgs::FiducialDetection& );                                    /// callback function to catch incoming sensor data
+    void callbackFiducial ( const sensor_msgs::MarkerDetection& );                                    /// callback function to catch incoming sensor data
     void callbackGroundTruth ( const nav_msgs::Odometry& );                                             /// callback function to catch ground truth pose messages
     
     dynamic_reconfigure::Server<tuw_slam::SLAMConfig> reconfigureServerSLAM_;                           /// parameter server stuff general use

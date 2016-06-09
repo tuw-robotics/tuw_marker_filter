@@ -58,16 +58,16 @@ VisualFiducialDetection::~VisualFiducialDetection() {
     scene_manager_->destroySceneNode ( frame_node_ );
 }
 
-void VisualFiducialDetection::setMessage ( const sensor_msgs::FiducialDetection::ConstPtr& msg ) {
-    fiducials_.resize ( msg->fiducials.size() );
+void VisualFiducialDetection::setMessage ( const sensor_msgs::MarkerDetection::ConstPtr& msg ) {
+    fiducials_.resize ( msg->markers.size() );
     for ( size_t i = 0; i < fiducials_.size(); i++ ) {
-        double p_x = msg->fiducials[i].pose.position.x;
-        double p_y = msg->fiducials[i].pose.position.y;
-        double p_z = msg->fiducials[i].pose.position.z;
-        double o_x = msg->fiducials[i].pose.orientation.x;
-        double o_y = msg->fiducials[i].pose.orientation.y;
-        double o_z = msg->fiducials[i].pose.orientation.z;
-        double o_w = msg->fiducials[i].pose.orientation.w;
+        double p_x = msg->markers[i].marker.pose.position.x;
+        double p_y = msg->markers[i].marker.pose.position.y;
+        double p_z = msg->markers[i].marker.pose.position.z;
+        double o_x = msg->markers[i].marker.pose.orientation.x;
+        double o_y = msg->markers[i].marker.pose.orientation.y;
+        double o_z = msg->markers[i].marker.pose.orientation.z;
+        double o_w = msg->markers[i].marker.pose.orientation.w;
 
         fiducials_[i].reset ( new rviz::Shape ( shape_type_, scene_manager_, frame_node_ ) );
         fiducials_[i]->setColor ( color_ );

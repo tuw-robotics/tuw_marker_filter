@@ -210,7 +210,7 @@ void SLAMNode::callbackCmd ( const geometry_msgs::Twist& cmd ) {
  * copies incoming fiducal messages to the base class
  * @param fiducial
  **/
-void SLAMNode::callbackFiducial ( const sensor_msgs::FiducialDetection &_fiducial ) {
+void SLAMNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_fiducial ) {
     assert ( zt_->getType() == tuw::Measurement::Type::FIDUCIAL );
     MeasurementFiducialPtr zt = std::static_pointer_cast<MeasurementFiducial> ( zt_ );
 
@@ -225,26 +225,26 @@ void SLAMNode::callbackFiducial ( const sensor_msgs::FiducialDetection &_fiducia
         zt->getSensorPose() = Pose2D ( 0.225,  0, 0 );
     }
 
-    zt->angle_min() = _fiducial.angle_min;
-    zt->angle_max() = _fiducial.angle_max;
-    zt->range_min() = _fiducial.range_min;
-    zt->range_max() = _fiducial.range_max;
-    zt->range_max_id() = _fiducial.range_max_id;
-    zt->sigma_radial() = _fiducial.sigma_radial;
-    zt->sigma_polar() = _fiducial.sigma_polar;
-    zt->sigma_azimuthal() = _fiducial.sigma_azimuthal;
-    zt->sigma_roll() = _fiducial.sigma_roll;
-    zt->sigma_pitch() = _fiducial.sigma_pitch;
-    zt->sigma_yaw() = _fiducial.sigma_yaw;
+    zt->angle_min() = _fiducial.angle_horizontal_min;
+    zt->angle_max() = _fiducial.angle_horizontal_max;
+    zt->range_min() = _fiducial.distance_min;
+    zt->range_max() = _fiducial.distance_max;
+    zt->range_max_id() = _fiducial.distance_max_id;
+    //zt->sigma_radial() = _fiducial.sigma_radial;
+    //zt->sigma_polar() = _fiducial.sigma_polar;
+    //zt->sigma_azimuthal() = _fiducial.sigma_azimuthal;
+    //zt->sigma_roll() = _fiducial.sigma_roll;
+    //zt->sigma_pitch() = _fiducial.sigma_pitch;
+    //zt->sigma_yaw() = _fiducial.sigma_yaw;
     zt->stamp() = _fiducial.header.stamp.toBoost();
-    zt->resize ( _fiducial.fiducials.size() );
+    zt->resize ( _fiducial.markers.size() );
 
     for ( size_t i = 0; i < zt->size(); i++ ) {
         tf::Vector3 v;
-        tf::pointMsgToTF ( _fiducial.fiducials[i].pose.position, v );
-        double orientation = tf::getYaw ( _fiducial.fiducials[i].pose.orientation );
+        tf::pointMsgToTF ( _fiducial.markers[i].marker.pose.position, v );
+        double orientation = tf::getYaw ( _fiducial.markers[i].marker.pose.orientation );
 
-        zt->operator[] ( i ).id = _fiducial.fiducials[i].id;
+        zt->operator[] ( i ).id = _fiducial.markers[i].marker.id;
         zt->operator[] ( i ).length = v.length();
         zt->operator[] ( i ).angle = atan2 ( v.getY(), v.getX() );
         zt->operator[] ( i ).orientation = orientation;

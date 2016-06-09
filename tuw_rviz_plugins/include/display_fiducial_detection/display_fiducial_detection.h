@@ -34,7 +34,7 @@
 #include <boost/circular_buffer.hpp>
 
 #include <rviz/message_filter_display.h>
-#include <sensor_msgs/FiducialDetection.h>
+#include <sensor_msgs/MarkerDetection.h>
 #endif
 
 #include <rviz/properties/enum_property.h>
@@ -62,7 +62,7 @@ class VisualFiducialDetection;
 // Here we declare our new subclass of rviz::Display.  Every display
 // which can be listed in the "Displays" panel is a subclass of
 // rviz::Display.
-class DisplayFiducialDetection: public rviz::MessageFilterDisplay<sensor_msgs::FiducialDetection>
+class DisplayFiducialDetection: public rviz::MessageFilterDisplay<sensor_msgs::MarkerDetection>
 {
 Q_OBJECT
 public:
@@ -91,7 +91,7 @@ private Q_SLOTS:
 
   // Function to handle an incoming ROS message.
 private:
-  void processMessage( const sensor_msgs::FiducialDetection::ConstPtr& msg );
+  void processMessage( const sensor_msgs::MarkerDetection::ConstPtr& msg );
 
   // Storage for the list of visuals.  It is a circular buffer where
   // data gets popped from the front (oldest) and pushed to the back (newest)

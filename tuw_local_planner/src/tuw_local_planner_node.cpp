@@ -42,7 +42,7 @@ LocalPlannerNode::LocalPlannerNode ( ros::NodeHandle & n )
 
     /// subscribe to sensor data
     sub_laser_ = n.subscribe ( "laser", 5, &LocalPlannerNode::callbackLaser, this );
-    sub_fiducial_ = n.subscribe ( "fiducial", 5, &LocalPlannerNode::callbackFiducial, this );
+    sub_marker_ = n.subscribe ( "marker", 5, &LocalPlannerNode::callbackFiducial, this );
 
     /// defines a publisher for velocity commands
     pub_cmd_ = n.advertise<geometry_msgs::Twist> ( "cmd_vel", 1 );
@@ -94,45 +94,45 @@ void LocalPlannerNode::callbackLaser ( const sensor_msgs::LaserScan &_laser ) {
 }
 
 /**
- * copies incoming fiducial messages to the base class
+ * copies incoming marker messages to the base class
  * @param laser
  **/
-void LocalPlannerNode::callbackFiducial ( const sensor_msgs::FiducialDetection &_fiducial ) {
+void LocalPlannerNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_marker ) {
     try {
         tf::StampedTransform transform;
-        tf_listener_->lookupTransform ( tf::resolve(n_.getNamespace(),"base_link"), _fiducial.header.frame_id, ros::Time ( 0 ), transform );
-        measurement_fiducial_.getSensorPose() = Pose2D ( transform.getOrigin().getX(),
+        tf_listener_->lookupTransform ( tf::resolve(n_.getNamespace(),"base_link"), _marker.header.frame_id, ros::Time ( 0 ), transform );
+        measurement_marker_.getSensorPose() = Pose2D ( transform.getOrigin().getX(),
                                                 transform.getOrigin().getY(),
                                                 tf::getYaw ( transform.getRotation() ) );
     } catch ( tf::TransformException &ex ) {
         ROS_ERROR ( "%s",ex.what() );
-        measurement_fiducial_.getSensorPose() = Pose2D ( 0.225, 0, 0 );
+        measurement_marker_.getSensorPose() = Pose2D ( 0.225, 0, 0 );
     }
 
-    measurement_fiducial_.angle_min() = _fiducial.angle_min;
-    measurement_fiducial_.angle_max() = _fiducial.angle_max;
-    measurement_fiducial_.range_min() = _fiducial.range_min;
-    measurement_fiducial_.range_max() = _fiducial.range_max;
-    measurement_fiducial_.range_max_id() = _fiducial.range_max_id;
-    measurement_fiducial_.sigma_radial() = _fiducial.sigma_radial;
-    measurement_fiducial_.sigma_polar() = _fiducial.sigma_polar;
-    measurement_fiducial_.sigma_azimuthal() = _fiducial.sigma_azimuthal;
-    measurement_fiducial_.sigma_roll() = _fiducial.sigma_roll;
-    measurement_fiducial_.sigma_pitch() = _fiducial.sigma_pitch;
-    measurement_fiducial_.sigma_yaw() = _fiducial.sigma_yaw;
-    measurement_fiducial_.stamp() = _fiducial.header.stamp.toBoost();
-    measurement_fiducial_.resize ( _fiducial.fiducials.size() );
+    measurement_marker_.angle_min() = _marker.angle_horizontal_min;
+    measurement_marker_.angle_max() = _marker.angle_horizontal_max;
+    measurement_marker_.range_min() = _marker.distance_min;
+    measurement_marker_.range_max() = _marker.distance_max;
+    measurement_marker_.range_max_id() = _marker.distance_max_id;
+    //measurement_marker_.sigma_radial() = _marker.sigma_radial;
+    //measurement_marker_.sigma_polar() = _marker.sigma_polar;
+    //measurement_marker_.sigma_azimuthal() = _marker.sigma_azimuthal;
+    //measurement_marker_.sigma_roll() = _marker.sigma_roll;
+    //measurement_marker_.sigma_pitch() = _marker.sigma_pitch;
+    //measurement_marker_.sigma_yaw() = _marker.sigma_yaw;
+    measurement_marker_.stamp() = _marker.header.stamp.toBoost();
+    measurement_marker_.resize ( _marker.markers.size() );
 
-    for ( int i = 0; i < measurement_fiducial_.size(); i++ ) {
+    for ( int i = 0; i < measurement_marker_.size(); i++ ) {
         tf::Vector3 v;
-        tf::pointMsgToTF ( _fiducial.fiducials[i].pose.position, v );
-        double orientation = tf::getYaw ( _fiducial.fiducials[i].pose.orientation );
+        tf::pointMsgToTF ( _marker.markers[i].marker.pose.position, v );
+        double orientation = tf::getYaw ( _marker.markers[i].marker.pose.orientation );
 
-        measurement_fiducial_[i].id = _fiducial.fiducials[i].id;
-        measurement_fiducial_[i].length = v.length();
-        measurement_fiducial_[i].angle = atan2 ( v.getY(), v.getX() );
-        measurement_fiducial_[i].orientation = orientation;
-        measurement_fiducial_[i].pose = Pose2D ( v.getX(), v.getY(), orientation );
+        measurement_marker_[i].id = _marker.markers[i].marker.id;
+        measurement_marker_[i].length = v.length();
+        measurement_marker_[i].angle = atan2 ( v.getY(), v.getX() );
+        measurement_marker_[i].orientation = orientation;
+        measurement_marker_[i].pose = Pose2D ( v.getX(), v.getY(), orientation );
     }
 }
 
