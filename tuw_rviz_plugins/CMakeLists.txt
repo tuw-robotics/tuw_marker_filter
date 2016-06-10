@@ -150,14 +150,14 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Here we specify which header files need to be run through "moc",
 ## Qt's meta-object compiler.
 qt4_wrap_cpp(MOC_FILES
-  include/display_fiducial_detection/display_fiducial_detection.h
+  include/display_marker_detection/display_marker_detection.h
 )
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES
-  src/display_fiducial_detection/display_fiducial_detection.cpp
-  src/display_fiducial_detection/visual_fiducial_detection.cpp
+  src/display_marker_detection/display_marker_detection.cpp
+  src/display_marker_detection/visual_marker_detection.cpp
   ${MOC_FILES}
 )
 

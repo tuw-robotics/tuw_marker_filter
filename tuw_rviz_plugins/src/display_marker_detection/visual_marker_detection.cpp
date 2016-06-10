@@ -31,7 +31,7 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 
-#include "display_fiducial_detection/visual_fiducial_detection.h"
+#include "display_marker_detection/visual_marker_detection.h"
 
 namespace tuw_rviz_plugins {
 
@@ -59,8 +59,8 @@ VisualMarkerDetection::~VisualMarkerDetection() {
 }
 
 void VisualMarkerDetection::setMessage ( const sensor_msgs::MarkerDetection::ConstPtr& msg ) {
-    fiducials_.resize ( msg->markers.size() );
-    for ( size_t i = 0; i < fiducials_.size(); i++ ) {
+    markers_.resize ( msg->markers.size() );
+    for ( size_t i = 0; i < markers_.size(); i++ ) {
         double p_x = msg->markers[i].marker.pose.position.x;
         double p_y = msg->markers[i].marker.pose.position.y;
         double p_z = msg->markers[i].marker.pose.position.z;
@@ -69,11 +69,11 @@ void VisualMarkerDetection::setMessage ( const sensor_msgs::MarkerDetection::Con
         double o_z = msg->markers[i].marker.pose.orientation.z;
         double o_w = msg->markers[i].marker.pose.orientation.w;
 
-        fiducials_[i].reset ( new rviz::Shape ( shape_type_, scene_manager_, frame_node_ ) );
-        fiducials_[i]->setColor ( color_ );
-        fiducials_[i]->setPosition ( Ogre::Vector3 ( p_x, p_y, p_z ) );
-        fiducials_[i]->setOrientation ( Ogre::Quaternion ( o_w, o_x, o_y, o_z ) );
-        fiducials_[i]->setScale ( Ogre::Vector3 ( scale_, scale_, scale_ ) );
+        markers_[i].reset ( new rviz::Shape ( shape_type_, scene_manager_, frame_node_ ) );
+        markers_[i]->setColor ( color_ );
+        markers_[i]->setPosition ( Ogre::Vector3 ( p_x, p_y, p_z ) );
+        markers_[i]->setOrientation ( Ogre::Quaternion ( o_w, o_x, o_y, o_z ) );
+        markers_[i]->setScale ( Ogre::Vector3 ( scale_, scale_, scale_ ) );
     }
 }
 
@@ -89,23 +89,23 @@ void VisualMarkerDetection::setFrameOrientation ( const Ogre::Quaternion& orient
 
 // Color is passed through to the Shape object.
 void VisualMarkerDetection::setColor ( Ogre::ColourValue color ) {
-    for ( size_t i = 0; i < fiducials_.size(); i++ ) {
-        fiducials_[i]->setColor ( color );
+    for ( size_t i = 0; i < markers_.size(); i++ ) {
+        markers_[i]->setColor ( color );
     }
     color_ = color;
 }
 
 // Shape type is passed through to the Shape object.
 void VisualMarkerDetection::setShape ( rviz::Shape::Type shape_type ) {
-    for ( size_t i = 0; i < fiducials_.size(); i++ ) {
-        Ogre::Vector3 position = fiducials_[i]->getPosition();
-        Ogre::Quaternion orientation = fiducials_[i]->getOrientation();
+    for ( size_t i = 0; i < markers_.size(); i++ ) {
+        Ogre::Vector3 position = markers_[i]->getPosition();
+        Ogre::Quaternion orientation = markers_[i]->getOrientation();
 
-        fiducials_[i].reset ( new rviz::Shape ( shape_type, scene_manager_, frame_node_ ) );
-        fiducials_[i]->setColor ( color_ );
-        fiducials_[i]->setPosition ( position );
-        fiducials_[i]->setOrientation ( orientation );
-        fiducials_[i]->setScale ( Ogre::Vector3 ( scale_, scale_, scale_ ) );
+        markers_[i].reset ( new rviz::Shape ( shape_type, scene_manager_, frame_node_ ) );
+        markers_[i]->setColor ( color_ );
+        markers_[i]->setPosition ( position );
+        markers_[i]->setOrientation ( orientation );
+        markers_[i]->setScale ( Ogre::Vector3 ( scale_, scale_, scale_ ) );
     }
 
     shape_type_ = shape_type;
@@ -113,8 +113,8 @@ void VisualMarkerDetection::setShape ( rviz::Shape::Type shape_type ) {
 
 // Scale is passed through to the Shape object.
 void VisualMarkerDetection::setScale ( float scale ) {
-    for ( size_t i = 0; i < fiducials_.size(); i++ ) {
-        fiducials_[i]->setScale ( Ogre::Vector3 ( scale_, scale_, scale_ ) );
+    for ( size_t i = 0; i < markers_.size(); i++ ) {
+        markers_[i]->setScale ( Ogre::Vector3 ( scale_, scale_, scale_ ) );
     }
     scale_ = scale;
 }

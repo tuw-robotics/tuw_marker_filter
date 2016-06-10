@@ -38,8 +38,8 @@
 #include <rviz/properties/int_property.h>
 #include <rviz/frame_manager.h>
 
-#include "display_fiducial_detection/visual_fiducial_detection.h"
-#include "display_fiducial_detection/display_fiducial_detection.h"
+#include "display_marker_detection/visual_marker_detection.h"
+#include "display_marker_detection/display_marker_detection.h"
 
 namespace tuw_rviz_plugins {
 
@@ -47,18 +47,18 @@ namespace tuw_rviz_plugins {
 // constructor the parameters it needs to fully initialize.
 DisplayMarkerDetection::DisplayMarkerDetection() {
     color_property_ = new rviz::ColorProperty ( "Color", QColor ( 204, 51, 204 ),
-            "Color to draw the fiducials.",
+            "Color to draw the markers.",
             this, SLOT ( updateColor() ) );
 
     shape_property_ = new rviz::EnumProperty ( "Shape", QString::fromStdString ( "Cube" ),
-            "Shape of the fiducials.",
+            "Shape of the markers.",
             this, SLOT ( updateShape() ) );
     shape_property_->addOptionStd ( "Cube", rviz::Shape::Cube );
     shape_property_->addOptionStd ( "Cylinder", rviz::Shape::Cylinder );
     shape_property_->addOptionStd ( "Sphere", rviz::Shape::Sphere );
 
     scale_property_ = new rviz::FloatProperty ( "Scale", 0.3,
-            "Scale of the fiducials.",
+            "Scale of the markers.",
             this, SLOT ( updateScale() ) );
     scale_property_->setMin ( 0 );
     scale_property_->setMax ( 1 );

@@ -83,7 +83,7 @@ public:
 
 private:
   // The objects implementing the actual shape
-  std::vector<boost::shared_ptr<rviz::Shape> > fiducials_;
+  std::vector<boost::shared_ptr<rviz::Shape> > markers_;
 
   // A SceneNode whose pose is set to match the coordinate frame of
   // the Imu message header.
