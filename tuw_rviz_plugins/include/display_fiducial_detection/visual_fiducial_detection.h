@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VISUAL_FIDUCIAL_DETECTION_H
-#define VISUAL_FIDUCIAL_DETECTION_H
+#ifndef VISUAL_MARKER_DETECTION_H
+#define VISUAL_MARKER_DETECTION_H
 
 #include <sensor_msgs/MarkerDetection.h>
 #include <rviz/ogre_helpers/shape.h>
@@ -48,15 +48,15 @@ namespace tuw_rviz_plugins
 {
 
 // Declare the visual class for this display.
-class VisualFiducialDetection
+class VisualMarkerDetection
 {
 public:
   // Constructor.  Creates the visual stuff and puts it into the
   // scene, but in an unconfigured state.
-  VisualFiducialDetection( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node );
+  VisualMarkerDetection( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node );
 
   // Destructor.  Removes the visual stuff from the scene.
-  virtual ~VisualFiducialDetection();
+  virtual ~VisualMarkerDetection();
 
   // Configure the visual to show the data in the message.
   void setMessage( const sensor_msgs::MarkerDetection::ConstPtr& msg );
@@ -64,7 +64,7 @@ public:
   // Set the pose of the coordinate frame the message refers to.
   // These could be done inside setMessage(), but that would require
   // calls to FrameManager and error handling inside setMessage(),
-  // which doesn't seem as clean.  This way VisualFiducialDetection is
+  // which doesn't seem as clean.  This way VisualMarkerDetection is
   // only responsible for visualization.
   void setFramePosition( const Ogre::Vector3& position );
   void setFrameOrientation( const Ogre::Quaternion& orientation );
@@ -105,4 +105,4 @@ private:
 
 } // end namespace tuw_rviz_plugins
 
-#endif // VISUAL_FIDUCIAL_DETECTION_H
+#endif // VISUAL_MARKER_DETECTION_H

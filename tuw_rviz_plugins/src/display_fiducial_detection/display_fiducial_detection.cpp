@@ -45,7 +45,7 @@ namespace tuw_rviz_plugins {
 
 // The constructor must have no arguments, so we can't give the
 // constructor the parameters it needs to fully initialize.
-DisplayFiducialDetection::DisplayFiducialDetection() {
+DisplayMarkerDetection::DisplayMarkerDetection() {
     color_property_ = new rviz::ColorProperty ( "Color", QColor ( 204, 51, 204 ),
             "Color to draw the fiducials.",
             this, SLOT ( updateColor() ) );
@@ -80,22 +80,22 @@ DisplayFiducialDetection::DisplayFiducialDetection() {
 // ``MessageFilterDisplay<message type>``, to save typing that long
 // templated class name every time you need to refer to the
 // superclass.
-void DisplayFiducialDetection::onInitialize() {
+void DisplayMarkerDetection::onInitialize() {
     MFDClass::onInitialize();
     updateHistoryLength();
 }
 
-DisplayFiducialDetection::~DisplayFiducialDetection() {
+DisplayMarkerDetection::~DisplayMarkerDetection() {
 }
 
 // Clear the visuals by deleting their objects.
-void DisplayFiducialDetection::reset() {
+void DisplayMarkerDetection::reset() {
     MFDClass::reset();
     visuals_.clear();
 }
 
 // Set the current color values for each visual.
-void DisplayFiducialDetection::updateColor() {
+void DisplayMarkerDetection::updateColor() {
     Ogre::ColourValue color = color_property_->getOgreColor();
 
     for ( size_t i = 0; i < visuals_.size(); i++ ) {
@@ -104,7 +104,7 @@ void DisplayFiducialDetection::updateColor() {
 }
 
 // Set the current shape for each visual.
-void DisplayFiducialDetection::updateShape() {
+void DisplayMarkerDetection::updateShape() {
     rviz::Shape::Type shape_type = ( rviz::Shape::Type ) shape_property_->getOptionInt();
 
     for ( size_t i = 0; i < visuals_.size(); i++ ) {
@@ -113,7 +113,7 @@ void DisplayFiducialDetection::updateShape() {
 }
 
 // Set the current scale for each visual.
-void DisplayFiducialDetection::updateScale() {
+void DisplayMarkerDetection::updateScale() {
     float scale = scale_property_->getFloat();
 
     for ( size_t i = 0; i < visuals_.size(); i++ ) {
@@ -122,12 +122,12 @@ void DisplayFiducialDetection::updateScale() {
 }
 
 // Set the number of past visuals to show.
-void DisplayFiducialDetection::updateHistoryLength() {
+void DisplayMarkerDetection::updateHistoryLength() {
     visuals_.rset_capacity ( history_length_property_->getInt() );
 }
 
 // This is our callback to handle an incoming message.
-void DisplayFiducialDetection::processMessage ( const sensor_msgs::MarkerDetection::ConstPtr& msg ) {
+void DisplayMarkerDetection::processMessage ( const sensor_msgs::MarkerDetection::ConstPtr& msg ) {
     // Here we call the rviz::FrameManager to get the transform from the
     // fixed frame to the frame in the header of this Imu message.  If
     // it fails, we can't do anything else so we return.
@@ -143,11 +143,11 @@ void DisplayFiducialDetection::processMessage ( const sensor_msgs::MarkerDetecti
 
     // We are keeping a circular buffer of visual pointers.  This gets
     // the next one, or creates and stores it if the buffer is not full
-    boost::shared_ptr<VisualFiducialDetection> visual;
+    boost::shared_ptr<VisualMarkerDetection> visual;
     if ( visuals_.full() ) {
         visual = visuals_.front();
     } else {
-        visual.reset ( new VisualFiducialDetection ( context_->getSceneManager(), scene_node_ ) );
+        visual.reset ( new VisualMarkerDetection ( context_->getSceneManager(), scene_node_ ) );
     }
 
     // Now set or update the contents of the chosen visual.
@@ -167,5 +167,5 @@ void DisplayFiducialDetection::processMessage ( const sensor_msgs::MarkerDetecti
 // Tell pluginlib about this class.  It is important to do this in
 // global scope, outside our package's namespace.
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS ( tuw_rviz_plugins::DisplayFiducialDetection,rviz::Display )
+PLUGINLIB_EXPORT_CLASS ( tuw_rviz_plugins::DisplayMarkerDetection,rviz::Display )
 // END_TUTORIAL

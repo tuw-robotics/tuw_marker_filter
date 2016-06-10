@@ -216,7 +216,7 @@ void SLAMNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_fiducial 
 
     try {
         tf::StampedTransform transform;
-        tf_listener_->lookupTransform ( tf::resolve(n_.getNamespace(),"base_link"), _fiducial.header.frame_id, ros::Time ( 0 ), transform );
+        tf_listener_->lookupTransform ( tf::resolve ( n_.getNamespace(),"base_link" ), _fiducial.header.frame_id, ros::Time ( 0 ), transform );
         zt->getSensorPose() = Pose2D ( transform.getOrigin().getX(),
                                        transform.getOrigin().getY(),
                                        tf::getYaw ( transform.getRotation() ) );
@@ -225,8 +225,12 @@ void SLAMNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_fiducial 
         zt->getSensorPose() = Pose2D ( 0.225,  0, 0 );
     }
 
-    zt->angle_min() = _fiducial.angle_horizontal_min;
-    zt->angle_max() = _fiducial.angle_horizontal_max;
+    if ( ( _fiducial.view_direction.x == 0 ) && ( _fiducial.view_direction.y == 0 ) && ( _fiducial.view_direction.z == 0 ) && ( _fiducial.view_direction.w == 1 ) ) {
+        zt->angle_min() = -_fiducial.fov_horizontal/2.;
+        zt->angle_max() = _fiducial.fov_horizontal/2.;
+    } else {
+        ROS_ERROR ( "[%s callbackFiducial] %s", ros::this_node::getName().c_str(), "This node only deals with straight forward looking view directions" );
+    }
     zt->range_min() = _fiducial.distance_min;
     zt->range_max() = _fiducial.distance_max;
     zt->range_max_id() = _fiducial.distance_max_id;

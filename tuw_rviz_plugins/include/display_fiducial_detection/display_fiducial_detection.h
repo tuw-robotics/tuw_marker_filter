@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DISPLAY_FIDUCIAL_DETECTION_H
-#define DISPLAY_FIDUCIAL_DETECTION_H
+#ifndef DISPLAY_MARKER_DETECTION_H
+#define DISPLAY_MARKER_DETECTION_H
 
 #ifndef Q_MOC_RUN
 #include <boost/circular_buffer.hpp>
@@ -57,19 +57,19 @@ class IntProperty;
 namespace tuw_rviz_plugins
 {
 
-class VisualFiducialDetection;
+class VisualMarkerDetection;
 
 // Here we declare our new subclass of rviz::Display.  Every display
 // which can be listed in the "Displays" panel is a subclass of
 // rviz::Display.
-class DisplayFiducialDetection: public rviz::MessageFilterDisplay<sensor_msgs::MarkerDetection>
+class DisplayMarkerDetection: public rviz::MessageFilterDisplay<sensor_msgs::MarkerDetection>
 {
 Q_OBJECT
 public:
   // Constructor.  pluginlib::ClassLoader creates instances by calling
   // the default constructor, so make sure you have one.
-  DisplayFiducialDetection();
-  virtual ~DisplayFiducialDetection();
+  DisplayMarkerDetection();
+  virtual ~DisplayMarkerDetection();
 
   // Overrides of protected virtual functions from Display.  As much
   // as possible, when Displays are not enabled, they should not be
@@ -95,7 +95,7 @@ private:
 
   // Storage for the list of visuals.  It is a circular buffer where
   // data gets popped from the front (oldest) and pushed to the back (newest)
-  boost::circular_buffer<boost::shared_ptr<VisualFiducialDetection> > visuals_;
+  boost::circular_buffer<boost::shared_ptr<VisualMarkerDetection> > visuals_;
 
   // User-editable property variables.
   rviz::ColorProperty* color_property_;
@@ -106,5 +106,5 @@ private:
 
 } // end namespace tuw_rviz_plugins
 
-#endif // DISPLAY_FIDUCIAL_DETECTION_H
+#endif // DISPLAY_MARKER_DETECTION_H
 // %EndTag(FULL_SOURCE)%

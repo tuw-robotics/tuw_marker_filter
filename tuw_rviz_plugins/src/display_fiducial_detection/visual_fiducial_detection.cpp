@@ -35,7 +35,7 @@
 
 namespace tuw_rviz_plugins {
 
-VisualFiducialDetection::VisualFiducialDetection ( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node ) {
+VisualMarkerDetection::VisualMarkerDetection ( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node ) {
     scene_manager_ = scene_manager;
 
     // Ogre::SceneNode s form a tree, with each node storing the
@@ -53,12 +53,12 @@ VisualFiducialDetection::VisualFiducialDetection ( Ogre::SceneManager* scene_man
     scale_ = 0.0;
 }
 
-VisualFiducialDetection::~VisualFiducialDetection() {
+VisualMarkerDetection::~VisualMarkerDetection() {
     // Destroy the frame node since we don't need it anymore.
     scene_manager_->destroySceneNode ( frame_node_ );
 }
 
-void VisualFiducialDetection::setMessage ( const sensor_msgs::MarkerDetection::ConstPtr& msg ) {
+void VisualMarkerDetection::setMessage ( const sensor_msgs::MarkerDetection::ConstPtr& msg ) {
     fiducials_.resize ( msg->markers.size() );
     for ( size_t i = 0; i < fiducials_.size(); i++ ) {
         double p_x = msg->markers[i].marker.pose.position.x;
@@ -78,17 +78,17 @@ void VisualFiducialDetection::setMessage ( const sensor_msgs::MarkerDetection::C
 }
 
 // Position is passed through to the SceneNode.
-void VisualFiducialDetection::setFramePosition ( const Ogre::Vector3& position ) {
+void VisualMarkerDetection::setFramePosition ( const Ogre::Vector3& position ) {
     frame_node_->setPosition ( position );
 }
 
 // Orientation is passed through to the SceneNode.
-void VisualFiducialDetection::setFrameOrientation ( const Ogre::Quaternion& orientation ) {
+void VisualMarkerDetection::setFrameOrientation ( const Ogre::Quaternion& orientation ) {
     frame_node_->setOrientation ( orientation );
 }
 
 // Color is passed through to the Shape object.
-void VisualFiducialDetection::setColor ( Ogre::ColourValue color ) {
+void VisualMarkerDetection::setColor ( Ogre::ColourValue color ) {
     for ( size_t i = 0; i < fiducials_.size(); i++ ) {
         fiducials_[i]->setColor ( color );
     }
@@ -96,7 +96,7 @@ void VisualFiducialDetection::setColor ( Ogre::ColourValue color ) {
 }
 
 // Shape type is passed through to the Shape object.
-void VisualFiducialDetection::setShape ( rviz::Shape::Type shape_type ) {
+void VisualMarkerDetection::setShape ( rviz::Shape::Type shape_type ) {
     for ( size_t i = 0; i < fiducials_.size(); i++ ) {
         Ogre::Vector3 position = fiducials_[i]->getPosition();
         Ogre::Quaternion orientation = fiducials_[i]->getOrientation();
@@ -112,7 +112,7 @@ void VisualFiducialDetection::setShape ( rviz::Shape::Type shape_type ) {
 }
 
 // Scale is passed through to the Shape object.
-void VisualFiducialDetection::setScale ( float scale ) {
+void VisualMarkerDetection::setScale ( float scale ) {
     for ( size_t i = 0; i < fiducials_.size(); i++ ) {
         fiducials_[i]->setScale ( Ogre::Vector3 ( scale_, scale_, scale_ ) );
     }

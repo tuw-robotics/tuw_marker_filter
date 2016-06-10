@@ -109,8 +109,8 @@ void LocalPlannerNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_m
         measurement_marker_.getSensorPose() = Pose2D ( 0.225, 0, 0 );
     }
 
-    measurement_marker_.angle_min() = _marker.angle_horizontal_min;
-    measurement_marker_.angle_max() = _marker.angle_horizontal_max;
+    measurement_marker_.angle_min() = -_marker.fov_horizontal/2.;
+    measurement_marker_.angle_max() = +_marker.fov_horizontal/2.;
     measurement_marker_.range_min() = _marker.distance_min;
     measurement_marker_.range_max() = _marker.distance_max;
     measurement_marker_.range_max_id() = _marker.distance_max_id;
