@@ -36,7 +36,7 @@ protected:
     unsigned long loop_count_; /// counts the filter cycles
 
     MeasurementLaser measurement_laser_;        /// laser measurements
-    MeasurementFiducial measurement_marker_;  /// fiducial measurements
+    MeasurementMarker measurement_marker_;  /// fiducial measurements
 
     Figure figure_local_;  /// Figure for data visualization
 

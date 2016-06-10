@@ -51,13 +51,13 @@ void LocalPlanner::plotLocal() {
 
     /// plot end points of laser measurement beams
     for ( size_t i = 0; i < measurement_laser_.size(); i++ ) {
-        Point2D p = measurement_laser_.getSensorPose().tf() * measurement_laser_[i].end_point;
+        Point2D p = measurement_laser_.pose2d().tf() * measurement_laser_[i].end_point;
         figure_local_.circle ( p, 1, Figure::red );
     }
 
     /// plot found markers
     for ( size_t i = 0; i < measurement_marker_.size(); i++ ) {
-        Point2D p = measurement_marker_.getSensorPose().tf() * measurement_marker_[i].pose.position();
+        Point2D p = measurement_marker_.pose2d().tf() * measurement_marker_[i].pose.position();
         figure_local_.circle ( p, 3, Figure::blue );
     }
 

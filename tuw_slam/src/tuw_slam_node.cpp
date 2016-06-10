@@ -40,7 +40,7 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
     n_param_.getParam ( "mode", mode );
     switch ( mode ) {
     case SLAMTechnique::EKF:
-        zt_ = std::make_shared<tuw::MeasurementFiducial>();
+        zt_ = std::make_shared<tuw::MeasurementMarker>();
         slam_technique_ = std::make_shared<tuw::EKFSLAM>();
         break;
     default:
@@ -211,18 +211,18 @@ void SLAMNode::callbackCmd ( const geometry_msgs::Twist& cmd ) {
  * @param fiducial
  **/
 void SLAMNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_fiducial ) {
-    assert ( zt_->getType() == tuw::Measurement::Type::FIDUCIAL );
-    MeasurementFiducialPtr zt = std::static_pointer_cast<MeasurementFiducial> ( zt_ );
+    assert ( zt_->getType() == tuw::Measurement::Type::MARKER );
+    MeasurementMarkerPtr zt = std::static_pointer_cast<MeasurementMarker> ( zt_ );
 
     try {
         tf::StampedTransform transform;
         tf_listener_->lookupTransform ( tf::resolve ( n_.getNamespace(),"base_link" ), _fiducial.header.frame_id, ros::Time ( 0 ), transform );
-        zt->getSensorPose() = Pose2D ( transform.getOrigin().getX(),
+        zt->pose2d() = Pose2D ( transform.getOrigin().getX(),
                                        transform.getOrigin().getY(),
                                        tf::getYaw ( transform.getRotation() ) );
     } catch ( tf::TransformException &ex ) {
         ROS_ERROR ( "[%s callbackFiducial] %s", ros::this_node::getName().c_str(), ex.what() );
-        zt->getSensorPose() = Pose2D ( 0.225,  0, 0 );
+        zt->pose2d() = Pose2D ( 0.225,  0, 0 );
     }
 
     if ( ( _fiducial.view_direction.x == 0 ) && ( _fiducial.view_direction.y == 0 ) && ( _fiducial.view_direction.z == 0 ) && ( _fiducial.view_direction.w == 1 ) ) {

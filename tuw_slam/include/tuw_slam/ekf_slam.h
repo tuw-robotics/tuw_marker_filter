@@ -69,19 +69,19 @@ private:
      * data association to find matching between measurements and landmarks
      * @param zt measurement at time t
      **/
-    void data_association ( const MeasurementFiducialConstPtr &zt );
+    void data_association ( const MeasurementMarkerConstPtr &zt );
     /**
      * TODO
      **/
-    void NNSF_local ( const MeasurementFiducialConstPtr &zt, const double gamma );
+    void NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gamma );
     /**
      * TODO
      **/
-    void NNSF_global ( const MeasurementFiducialConstPtr &zt, const double gamma );
+    void NNSF_global ( const MeasurementMarkerConstPtr &zt, const double gamma );
     /**
      * TODO
      **/
-    void measurement ( const MeasurementFiducialConstPtr &zt, const CorrDataPtr &corr );
+    void measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataPtr &corr );
     /**
      * correcting robot and landmarks poses
      * @param zt measurement at time t
@@ -98,7 +98,7 @@ private:
     /**
      * integrating new landmarks
      **/
-    void integration ( const MeasurementFiducialConstPtr &zt );
+    void integration ( const MeasurementMarkerConstPtr &zt );
 
     tuw_slam::EKFSLAMConfig config_;            /// parameters
 

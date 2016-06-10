@@ -27,8 +27,8 @@ void EKFSLAM::init() {
 
 void EKFSLAM::cycle ( std::vector<Pose2D> &yt, cv::Mat_<double> &C_Yt, const Command &ut, const MeasurementConstPtr &zt ) {
     if ( reset_ ) init();
-    if ( zt->getType() == tuw::Measurement::Type::FIDUCIAL && updateTimestamp ( zt->stamp() ) ) {
-        MeasurementFiducialConstPtr z = std::static_pointer_cast<MeasurementFiducial const> ( zt );
+    if ( zt->getType() == tuw::Measurement::Type::MARKER && updateTimestamp ( zt->stamp() ) ) {
+        MeasurementMarkerConstPtr z = std::static_pointer_cast<MeasurementMarker const> ( zt );
 
         // control noise
         M = cv::Matx<double, 2, 2> ( config_.alpha_1*ut.v() *ut.v() + config_.alpha_2*ut.w() *ut.w(), 0,
@@ -124,7 +124,7 @@ void EKFSLAM::prediction ( const Command &ut ) {
     x[2][0] = angle_normalize ( x[2][0] );
 }
 
-void EKFSLAM::data_association ( const MeasurementFiducialConstPtr &zt ) {
+void EKFSLAM::data_association ( const MeasurementMarkerConstPtr &zt ) {
     // initialization
     c_ij = std::vector<CorrDataPtr> ( zt->size() );
     c_ji = std::vector<CorrDataPtr> ( y.rows/3 );
@@ -183,7 +183,7 @@ void EKFSLAM::data_association ( const MeasurementFiducialConstPtr &zt ) {
     }
 }
 
-void EKFSLAM::NNSF_local ( const MeasurementFiducialConstPtr &zt, const double gamma ) {
+void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gamma ) {
     std::vector<size_t> m_reject;
 
     // find correspondences based on Mahalanobis distance
@@ -261,7 +261,7 @@ void EKFSLAM::NNSF_local ( const MeasurementFiducialConstPtr &zt, const double g
     for (auto j: m_reject) c_ji[j] = nullptr;
 }
 
-void EKFSLAM::NNSF_global ( const MeasurementFiducialConstPtr &zt, const double gamma ) {
+void EKFSLAM::NNSF_global ( const MeasurementMarkerConstPtr &zt, const double gamma ) {
     // book keeping: measurements
     std::vector<size_t> map_i;
     for ( size_t i = 0; i < c_ij.size(); i++ ) {
@@ -336,16 +336,18 @@ void EKFSLAM::NNSF_global ( const MeasurementFiducialConstPtr &zt, const double 
     }
 }
 
-void EKFSLAM::measurement ( const MeasurementFiducialConstPtr &zt, const CorrDataPtr &corr ) {
+void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataPtr &corr ) {
     const size_t i = corr->ij.first;
     const size_t j = corr->ij.second;
     assert ( i < zt->size() && 0 < j && j < y.rows/3 );
 
     // transformation matrix from robot coordinates in global coordinates
-    cv::Matx<double, 4, 4> T_x = Pose2D ( x[0][0], x[1][0], x[2][0] ).tf2();
+    Pose2D p(x[0][0], x[1][0], x[2][0] );
+    cv::Matx<double, 4, 4> T_x = cv::Matx44d ( p.theta_cos(), -p.theta_sin(), 0, p.x(), p.theta_sin(), p.theta_cos(), 0, p.y(), 0, 0, 1, p.theta(), 0, 0, 0, 1 );
 
     // measurement prediction of landmark j
-    cv::Vec<double, 4> sensor = T_x * zt->getSensorPose().hv();
+    cv::Vec<double, 4> homogenious_stage_vector = append(zt->pose2d().state_vector(), 1);
+    cv::Vec<double, 4> sensor = T_x * homogenious_stage_vector;
     cv::Vec<double, 2> delta = cv::Vec<double, 2> ( y[3*j + 0][0] - sensor[0],
                                y[3*j + 1][0] - sensor[1] );
     double q = ( delta.t() * delta ) [0];
@@ -369,8 +371,8 @@ void EKFSLAM::measurement ( const MeasurementFiducialConstPtr &zt, const CorrDat
     assert ( q > 0 );
     double s = sin ( x[2][0] );
     double c = cos ( x[2][0] );
-    double ddeltax =  zt->getSensorPose().x() *s + zt->getSensorPose().y() *c;
-    double ddeltay = -zt->getSensorPose().x() *c + zt->getSensorPose().y() *s;
+    double ddeltax =  zt->pose2d().x() *s + zt->pose2d().y() *c;
+    double ddeltay = -zt->pose2d().x() *c + zt->pose2d().y() *s;
     double dx_sq = delta[0]/sqrt ( q );
     double dy_sq = delta[1]/sqrt ( q );
     double dx_q = delta[0]/q;
@@ -512,7 +514,7 @@ void EKFSLAM::update_combined() {
     C_Y = 0.5 * ( C_Y + C_Y.t() );
 }
 
-void EKFSLAM::integration ( const MeasurementFiducialConstPtr &zt ) {
+void EKFSLAM::integration ( const MeasurementMarkerConstPtr &zt ) {
     if ( !config_.enable_integration || z_new.size() == 0 ) return;
 
     for ( auto i: z_new ) {
@@ -532,10 +534,12 @@ void EKFSLAM::integration ( const MeasurementFiducialConstPtr &zt ) {
         double F_c = cos ( zt->operator[] ( i ).angle );
 
         // transformation matrix from robot coordinates in global coordinates
-        cv::Matx<double, 4, 4> T_x = Pose2D ( x[0][0], x[1][0], x[2][0] ).tf2();
+        Pose2D px(x[0][0], x[1][0], x[2][0] );
+        cv::Matx<double, 4, 4> T_x = cv::Matx44d ( px.theta_cos(), -px.theta_sin(), 0, px.x(), px.theta_sin(), px.theta_cos(), 0, px.y(), 0, 0, 1, px.theta(), 0, 0, 0, 1 );
 
         // transformation matrix from sensor coordinates in robot coordinates
-        cv::Matx<double, 4, 4> T_z = zt->getSensorPose().tf2();
+        Pose2D pz = zt->pose2d();
+        cv::Matx<double, 4, 4> T_z = cv::Matx44d ( pz.theta_cos(), -pz.theta_sin(), 0, pz.x(), pz.theta_sin(), pz.theta_cos(), 0, pz.y(), 0, 0, 1, pz.theta(), 0, 0, 0, 1 );
 
         // transformation matrix from sensor coordinates in global coordinates
         cv::Matx<double, 4, 4> T_x_T_z = T_x * T_z;
@@ -552,7 +556,8 @@ void EKFSLAM::integration ( const MeasurementFiducialConstPtr &zt ) {
         // update gloabl mean with mean of landmark j: m_j = g(x, z) = T_x(x) * T_z * f(z)
         // with f(z) = (r*cos(a), r*sin(a), o), r..radius, a..alpha, o..orientation
         // (function f transforms measurements from spheric coordinates into cartesian coordinates)
-        cv::Vec<double, 4> m_j = T_x_T_z * zt->operator[] ( i ).pose.hv();
+	cv::Vec<double, 4> homogenious_stage_vector_i = append(zt->operator[] ( i ).pose.state_vector(), 1);
+        cv::Vec<double, 4> m_j = T_x_T_z * homogenious_stage_vector_i;
         y[3*j + 0][0] = m_j[0];
         y[3*j + 1][0] = m_j[1];
         y[3*j + 2][0] = m_j[2];
@@ -565,7 +570,7 @@ void EKFSLAM::integration ( const MeasurementFiducialConstPtr &zt ) {
 
         // jacobian matrix of G in respect to x
         cv::Mat_<double> G_x = cv::Mat_<double>::eye ( 3, 3 );
-        cv::Vec<double, 4> G_theta = T_x_theta * T_z * zt->operator[] ( i ).pose.hv();
+        cv::Vec<double, 4> G_theta = T_x_theta * T_z * homogenious_stage_vector_i;
         G_x[0][2] = G_theta[0];
         G_x[1][2] = G_theta[1];
 

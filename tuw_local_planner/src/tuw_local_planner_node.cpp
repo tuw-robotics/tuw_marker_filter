@@ -70,12 +70,12 @@ void LocalPlannerNode::callbackLaser ( const sensor_msgs::LaserScan &_laser ) {
     try {
         tf::StampedTransform transform;
         tf_listener_->lookupTransform ( tf::resolve(n_.getNamespace(),"base_link"), _laser.header.frame_id, ros::Time ( 0 ), transform );
-        measurement_laser_.getSensorPose() = Pose2D ( transform.getOrigin().getX(),
+        measurement_laser_.pose2d() = Pose2D ( transform.getOrigin().getX(),
                                              transform.getOrigin().getY(),
                                              transform.getRotation().getAngle() );
     } catch ( tf::TransformException &ex ) {
         ROS_ERROR ( "%s",ex.what() );
-        measurement_laser_.getSensorPose() = Pose2D ( 0.225,  0, 0 );
+        measurement_laser_.pose2d() = Pose2D ( 0.225,  0, 0 );
     }
 
     measurement_laser_.range_max() = _laser.range_max;
@@ -101,12 +101,12 @@ void LocalPlannerNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_m
     try {
         tf::StampedTransform transform;
         tf_listener_->lookupTransform ( tf::resolve(n_.getNamespace(),"base_link"), _marker.header.frame_id, ros::Time ( 0 ), transform );
-        measurement_marker_.getSensorPose() = Pose2D ( transform.getOrigin().getX(),
+        measurement_marker_.pose2d() = Pose2D ( transform.getOrigin().getX(),
                                                 transform.getOrigin().getY(),
                                                 tf::getYaw ( transform.getRotation() ) );
     } catch ( tf::TransformException &ex ) {
         ROS_ERROR ( "%s",ex.what() );
-        measurement_marker_.getSensorPose() = Pose2D ( 0.225, 0, 0 );
+        measurement_marker_.pose2d() = Pose2D ( 0.225, 0, 0 );
     }
 
     measurement_marker_.angle_min() = -_marker.fov_horizontal/2.;
