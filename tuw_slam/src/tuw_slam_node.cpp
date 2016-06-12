@@ -210,7 +210,7 @@ void SLAMNode::callbackCmd ( const geometry_msgs::Twist& cmd ) {
  * copies incoming fiducal messages to the base class
  * @param fiducial
  **/
-void SLAMNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_fiducial ) {
+void SLAMNode::callbackFiducial ( const marker_msgs::MarkerDetection &_fiducial ) {
     assert ( zt_->getType() == tuw::Measurement::Type::MARKER );
     MeasurementMarkerPtr zt = std::static_pointer_cast<MeasurementMarker> ( zt_ );
 
@@ -245,10 +245,10 @@ void SLAMNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_fiducial 
 
     for ( size_t i = 0; i < zt->size(); i++ ) {
         tf::Vector3 v;
-        tf::pointMsgToTF ( _fiducial.markers[i].marker.pose.position, v );
-        double orientation = tf::getYaw ( _fiducial.markers[i].marker.pose.orientation );
+        tf::pointMsgToTF ( _fiducial.markers[i].pose.position, v );
+        double orientation = tf::getYaw ( _fiducial.markers[i].pose.orientation );
 
-        zt->operator[] ( i ).id = _fiducial.markers[i].marker.id;
+        zt->operator[] ( i ).id = _fiducial.markers[i].id;
         zt->operator[] ( i ).length = v.length();
         zt->operator[] ( i ).angle = atan2 ( v.getY(), v.getX() );
         zt->operator[] ( i ).orientation = orientation;

@@ -97,7 +97,7 @@ void LocalPlannerNode::callbackLaser ( const sensor_msgs::LaserScan &_laser ) {
  * copies incoming marker messages to the base class
  * @param laser
  **/
-void LocalPlannerNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_marker ) {
+void LocalPlannerNode::callbackFiducial ( const marker_msgs::MarkerDetection &_marker ) {
     try {
         tf::StampedTransform transform;
         tf_listener_->lookupTransform ( tf::resolve(n_.getNamespace(),"base_link"), _marker.header.frame_id, ros::Time ( 0 ), transform );
@@ -125,10 +125,10 @@ void LocalPlannerNode::callbackFiducial ( const sensor_msgs::MarkerDetection &_m
 
     for ( int i = 0; i < measurement_marker_.size(); i++ ) {
         tf::Vector3 v;
-        tf::pointMsgToTF ( _marker.markers[i].marker.pose.position, v );
-        double orientation = tf::getYaw ( _marker.markers[i].marker.pose.orientation );
+        tf::pointMsgToTF ( _marker.markers[i].pose.position, v );
+        double orientation = tf::getYaw ( _marker.markers[i].pose.orientation );
 
-        measurement_marker_[i].id = _marker.markers[i].marker.id;
+        measurement_marker_[i].id = _marker.markers[i].id;
         measurement_marker_[i].length = v.length();
         measurement_marker_[i].angle = atan2 ( v.getY(), v.getX() );
         measurement_marker_[i].orientation = orientation;
