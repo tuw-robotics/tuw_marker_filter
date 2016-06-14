@@ -13,8 +13,8 @@
 
   <!-- Remapping -->
   <arg name="laser" default="base_scan" />
-  <arg name="fiducial_clear" default="base_fiducial_detection" />
-  <arg name="fiducial_noise" default="fiducial_noise" />
+  <arg name="marker_clear" default="base_marker_detection" />
+  <arg name="marker_noise" default="marker_noise" />
   <arg name="cmd" default="cmd_vel" />
 
   <node name="stage_ros" pkg="stage_ros" type="stageros" args="$(find stage_ros)/world/$(arg world).world"/>
@@ -27,20 +27,20 @@
       <param name="sigma_pitch" value="$(arg sigma_pitch)" />
       <param name="sigma_yaw" value="$(arg sigma_yaw)" />
       <param name="plot_data" value="$(arg plot_data)" />
-      <remap from="fiducial" to="$(arg fiducial_clear)" />
+      <remap from="marker" to="$(arg marker_clear)" />
   </node>
 
   <node pkg="tuw_local_planner" type="tuw_local_planner_node" name="local_planner" output="screen">
       <param name="plot_data" value="$(arg plot_data)" />
       <param name="mode" value="$(arg planner_mode)" />
       <remap from="laser" to="$(arg laser)" />
-      <remap from="fiducial" to="$(arg fiducial_noise)" />
+      <remap from="marker" to="$(arg marker_noise)" />
   </node>
 
   <node pkg="tuw_slam" type="tuw_slam_node" name="slam" output="screen">
       <param name="mode" value="$(arg slam_mode)" />
       <remap from="cmd" to="$(arg cmd)" />
-      <remap from="fiducial" to="$(arg fiducial_noise)" />
+      <remap from="marker" to="$(arg marker_noise)" />
   </node>
 
   <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>

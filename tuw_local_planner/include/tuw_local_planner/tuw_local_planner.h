@@ -6,6 +6,7 @@
 #include <ros/ros.h>
 #include <opencv2/opencv.hpp>
 #include <tuw_geometry/tuw_geometry.h>
+#include <tuw_slam/measurement_marker.h>
 #include <tuw_local_planner/LocalPlannerConfig.h>
 
 namespace tuw {
@@ -36,7 +37,7 @@ protected:
     unsigned long loop_count_; /// counts the filter cycles
 
     MeasurementLaser measurement_laser_;        /// laser measurements
-    MeasurementMarker measurement_marker_;  /// fiducial measurements
+    MeasurementMarker measurement_marker_;      /// marker measurements
 
     Figure figure_local_;  /// Figure for data visualization
 

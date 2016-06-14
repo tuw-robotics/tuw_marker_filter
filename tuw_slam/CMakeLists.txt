@@ -135,6 +135,7 @@ add_library(tuw_slam
   src/${PROJECT_NAME}/tuw_slam.cpp
   src/${PROJECT_NAME}/slam_technique.cpp
   src/${PROJECT_NAME}/ekf_slam.cpp
+  src/${PROJECT_NAME}/measurement_marker.cpp
   src/${PROJECT_NAME}/munkre.cpp
 )
 

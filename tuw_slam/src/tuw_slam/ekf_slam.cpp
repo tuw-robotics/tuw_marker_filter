@@ -21,7 +21,7 @@ void EKFSLAM::init() {
     x = cv::Mat_<double> ( y, cv::Range ( 0, 3 ), cv::Range ( 0, 1 ) );
     C_X = cv::Mat_<double> ( C_Y, cv::Range ( 0, 3 ), cv::Range ( 0, 3 ) );
 
-    // reset fiducial landmark correspondences
+    // reset marker landmark correspondences
     f_kj.clear();
 }
 
@@ -29,15 +29,6 @@ void EKFSLAM::cycle ( std::vector<Pose2D> &yt, cv::Mat_<double> &C_Yt, const Com
     if ( reset_ ) init();
     if ( zt->getType() == tuw::Measurement::Type::MARKER && updateTimestamp ( zt->stamp() ) ) {
         MeasurementMarkerConstPtr z = std::static_pointer_cast<MeasurementMarker const> ( zt );
-
-        // control noise
-        M = cv::Matx<double, 2, 2> ( config_.alpha_1*ut.v() *ut.v() + config_.alpha_2*ut.w() *ut.w(), 0,
-                                     0, config_.alpha_3*ut.v() *ut.v() + config_.alpha_4*ut.w() *ut.w() );
-
-        // measurement noise
-        Q = cv::Matx<double, 3,3> ( z->sigma_radial() * z->sigma_radial(), 0, 0,
-                                    0, z->sigma_azimuthal() * z->sigma_azimuthal(), 0,
-                                    0, 0, z->sigma_yaw() * z->sigma_yaw() );
 
         // invariance check
         assert ( y.rows % 3 == 0 && y.cols == 1 );
@@ -67,6 +58,10 @@ void EKFSLAM::setConfig ( const void *config ) {
 
 void EKFSLAM::prediction ( const Command &ut ) {
     if ( !config_.enable_prediction ) return;
+
+    // control noise
+    cv::Matx<double, 2, 2> M = cv::Matx<double, 2, 2> ( config_.alpha_1*ut.v() *ut.v() + config_.alpha_2*ut.w() *ut.w(), 0,
+                               0, config_.alpha_3*ut.v() *ut.v() + config_.alpha_4*ut.w() *ut.w() );
 
     // pre-calculate needed data
     double dt = duration_last_update_.total_microseconds() /1000000.0;
@@ -135,7 +130,7 @@ void EKFSLAM::data_association ( const MeasurementMarkerConstPtr &zt ) {
     boost::math::chi_squared chi_squared = boost::math::chi_squared ( 3 );
     double gamma = boost::math::quantile(chi_squared, config_.alpha);
 
-    // find correspondences based on measurement fiducical IDs
+    // find correspondences based on measurement marker IDs
     for ( size_t i = 0; i < zt->size(); i++ ) {
         assert ( zt->operator[] ( i ).id >= 0 );
 
@@ -166,7 +161,7 @@ void EKFSLAM::data_association ( const MeasurementMarkerConstPtr &zt ) {
             }
         }
     }
-    
+
     // complement correspondences based on probability
     switch (config_.data_association_mode) {
         case ID:
@@ -190,7 +185,7 @@ void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gam
     for ( size_t i = 0; i < c_ij.size(); i++ ) {
         assert ( c_ij[i] == nullptr || c_ij[i]->ij.first == i );
 
-        // consider only measurements without fiducial IDs
+        // consider only measurements without marker IDs
         if ( zt->operator[] ( i ).id > 0) continue;
         assert ( c_ij[i] == nullptr );
 
@@ -199,7 +194,7 @@ void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gam
         for ( size_t j = 1; j < c_ji.size(); j++ ) {
             assert ( c_ji[j] == nullptr || c_ji[j]->ij.second == j );
 
-            // consider only landmarks without correspondences based on measurement fiducial IDs
+            // consider only landmarks without correspondences based on measurement marker IDs
             if ( c_ji[j] != nullptr && zt->operator[] ( c_ji[j]->ij.first ).id > 0 ) continue;
 
             // create correspondence data
@@ -214,7 +209,7 @@ void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gam
                 min_c = c;
             }
         }
-        
+
         // update correspondences
         if ( min_c == nullptr || min_d_2 > gamma ) continue;
 
@@ -241,7 +236,7 @@ void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gam
                     std::vector<size_t>::iterator it = std::find ( z_known.begin(), z_known.end(), old_i );
                     assert ( it != z_known.end() );
                     z_known.erase( it );
-                    
+
                     // reset old correspondence c_ij at the first time and
                     // remember old correspondence c_ji for later reset
                     c_ij[old_i] = nullptr;
@@ -267,7 +262,7 @@ void EKFSLAM::NNSF_global ( const MeasurementMarkerConstPtr &zt, const double ga
     for ( size_t i = 0; i < c_ij.size(); i++ ) {
         assert ( c_ij[i] == nullptr || c_ij[i]->ij.first == i );
 
-        // consider only measurements without fiducial IDs
+        // consider only measurements without marker IDs
         if ( zt->operator[] ( i ).id > 0 ) continue;
         assert ( c_ij[i] == nullptr );
 
@@ -282,7 +277,7 @@ void EKFSLAM::NNSF_global ( const MeasurementMarkerConstPtr &zt, const double ga
     for ( size_t j = 1; j < c_ji.size(); j++ ) {
         assert ( c_ji[j] == nullptr || c_ji[j]->ij.second == j );
 
-        // consider only landmarks without correspondences based on measurement fiducial IDs
+        // consider only landmarks without correspondences based on measurement marker IDs
         assert ( c_ji[j] == nullptr || zt->operator[] ( c_ji[j]->ij.first ).id > 0);
         if ( c_ji[j] != nullptr ) continue;
 
@@ -313,7 +308,7 @@ void EKFSLAM::NNSF_global ( const MeasurementMarkerConstPtr &zt, const double ga
         }
     }
 
-    // update correspondences   
+    // update correspondences
     std::vector<std::pair<size_t, size_t>> assignment = Munkre::find_minimum_assignment(D_2);
     for (size_t k = 0; k < assignment.size(); k++) {
         // book keeping measurement and landmark
@@ -387,13 +382,21 @@ void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataP
                                         -dy_q, dx_q, 0,
                                         0, 0, 1 );
 
+    // measurement noise
+    double l = zt->operator[] ( i ).length;
+    double a = zt->operator[] ( i ).angle;
+    double o = zt->operator[] ( i ).orientation;
+    corr->Q = cv::Matx<double, 3,3> ( config_.beta_1*l*l + config_.beta_2*a*a + config_.beta_3*o*o, 0, 0,
+                                      0, config_.beta_4*l*l + config_.beta_5*a*a + config_.beta_6*o*o, 0,
+                                      0, 0, config_.beta_7*l*l + config_.beta_8*a*a + config_.beta_9*o*o );
+
     // S_i = H_i*C_Y*H_i^T + Q
     cv::Matx<double, 3, 3> C_X_ = cv::Mat_<double> ( C_Y, cv::Range ( 0, 3 ), cv::Range ( 0, 3 ) );
     cv::Matx<double, 3, 3> C_M = cv::Mat_<double> ( C_Y, cv::Range ( 3*j, 3*j + 3 ), cv::Range ( 3*j, 3*j + 3 ) );
     cv::Matx<double, 3, 3> C_XM = cv::Mat_<double> ( C_Y, cv::Range ( 0, 3 ), cv::Range ( 3*j, 3*j + 3 ) );
 
     cv::Matx<double, 3, 3> tmp = corr->dx*C_XM*corr->dm.t();
-    cv::Matx<double, 3, 3> S = corr->dx*C_X_*corr->dx.t() + tmp + tmp.t() + corr->dm*C_M*corr->dm.t() + Q;
+    cv::Matx<double, 3, 3> S = corr->dx*C_X_*corr->dx.t() + tmp + tmp.t() + corr->dm*C_M*corr->dm.t() + corr->Q;
     corr->S_inv = S.inv();
 }
 
@@ -417,15 +420,15 @@ void EKFSLAM::update_single() {
     if ( z_known.size() == 0 ) return;
 
     for ( auto i: z_known ) {
-        assert ( i < c_ij.size() );
+        assert ( i < c_ij.size() && c_ij[i] != nullptr );
 
         // obtained measurement i corresponds to landmark j
         int j = c_ij[i]->ij.second;
-        assert ( 0 < j && j < y.rows/3 && c_ji[j] != nullptr );
+        assert ( 0 < j && j < y.rows/3 && c_ji[j] == c_ij[i] );
 
         // fetch needed data
-        cv::Mat_<double> v = cv::Mat_<double> ( c_ji[j]->v );
-        cv::Mat_<double> S_inv = cv::Mat_<double> ( c_ji[j]->S_inv );
+        cv::Mat_<double> v = cv::Mat_<double> ( c_ij[i]->v );
+        cv::Mat_<double> S_inv = cv::Mat_<double> ( c_ij[i]->S_inv );
 
         // K_i = C_Y*H_i^T*S_i^(-1)
         cv::Mat_<double> K_i = cv::Mat_<double> ( C_Y.rows, 3, 0.0 );
@@ -436,7 +439,7 @@ void EKFSLAM::update_single() {
             // calculation & matrix update
             cv::Matx<double, 3, 3> C_MX_k = cv::Mat_<double> ( C_Y, cv::Range ( k, k + 3 ), cv::Range ( 0, 3 ) );
             cv::Matx<double, 3, 3> C_M_kj = cv::Mat_<double> ( C_Y, cv::Range ( k, k + 3 ), cv::Range ( 3*j, 3*j + 3 ) );
-            cv::Mat_<double> tmp = cv::Mat_<double> ( C_MX_k*c_ji[j]->dx.t() + C_M_kj*c_ji[j]->dm.t() );
+            cv::Mat_<double> tmp = cv::Mat_<double> ( C_MX_k*c_ij[i]->dx.t() + C_M_kj*c_ij[i]->dm.t() );
             K_i_k = tmp * S_inv;
         }
 
@@ -449,8 +452,8 @@ void EKFSLAM::update_single() {
 
             // calculation & matrix update
             cv::Matx<double, 3, 3> K_i_k = cv::Mat_<double> ( K_i, cv::Range ( k, k + 3 ), cv::Range ( 0, 3 ) );
-            I_K_i_H_i_k0 -= cv::Mat_<double> ( K_i_k * c_ji[j]->dx );
-            I_K_i_H_i_kj -= cv::Mat_<double> ( K_i_k * c_ji[j]->dm );
+            I_K_i_H_i_k0 -= cv::Mat_<double> ( K_i_k * c_ij[i]->dx );
+            I_K_i_H_i_kj -= cv::Mat_<double> ( K_i_k * c_ij[i]->dm );
         }
 
         // update mean and covariance
@@ -476,11 +479,11 @@ void EKFSLAM::update_combined() {
     size_t k = 0;
 
     for ( auto i: z_known ) {
-        assert ( i < c_ij.size() );
+        assert ( i < c_ij.size() && c_ij[i] != nullptr );
 
         // obtained measurement i corresponds to landmark j
         int j = c_ij[i]->ij.second;
-        assert ( 0 < j && j < y.rows/3 && c_ji[j] != nullptr );
+        assert ( 0 < j && j < y.rows/3 && c_ji[j] == c_ij[i] );
 
         // references to submatrices
         cv::Mat_<double> v_k = cv::Mat_<double> ( v, cv::Range ( k, k + 3 ), cv::Range ( 0, 1 ) );
@@ -491,10 +494,10 @@ void EKFSLAM::update_combined() {
         // calculation & update
         // H = (H_1j H_2j' ... H_Nj'')^T
         // H_kj = (dx_kj 0 .. 0 dm_kj 0 .. 0)
-        v_k += cv::Mat_<double> ( c_ji[j]->v );
-        Hx_kj += cv::Mat_<double> ( c_ji[j]->dx );
-        Hm_kj += cv::Mat_<double> ( c_ji[j]->dm );
-        R_k += cv::Mat_<double> ( Q );
+        v_k += cv::Mat_<double> ( c_ij[i]->v );
+        Hx_kj += cv::Mat_<double> ( c_ij[i]->dx );
+        Hm_kj += cv::Mat_<double> ( c_ij[i]->dm );
+        R_k += cv::Mat_<double> ( c_ij[i]->Q );
         k += 3;
     }
 
@@ -518,13 +521,21 @@ void EKFSLAM::integration ( const MeasurementMarkerConstPtr &zt ) {
     if ( !config_.enable_integration || z_new.size() == 0 ) return;
 
     for ( auto i: z_new ) {
-        // consider only measurements with fiducial IDs for new landmarks
+        // consider only measurements with marker IDs for new landmarks
         assert ( zt->operator[] ( i ).id > 0 );
+
+        // measurement noise
+        double l = zt->operator[] ( i ).length;
+        double a = zt->operator[] ( i ).angle;
+        double o = zt->operator[] ( i ).orientation;
+        cv::Matx<double, 3,3> Q = cv::Matx<double, 3,3> ( config_.beta_1*l*l + config_.beta_2*a*a + config_.beta_3*o*o, 0, 0,
+                                  0, config_.beta_4*l*l + config_.beta_5*a*a + config_.beta_6*o*o, 0,
+                                  0, 0, config_.beta_7*l*l + config_.beta_8*a*a + config_.beta_9*o*o );
 
         // number landmarks found in ascending order
         int j = y.rows/3;
         f_kj.insert ( std::pair<size_t,size_t> ( zt->operator[] ( i ).id, j ) );
-        ROS_INFO ( "new landmark found: fiducial %d corresponds to landmark %d", zt->operator[] ( i ).id, j );
+        ROS_INFO ( "new landmark found: marker %d corresponds to landmark %d", zt->operator[] ( i ).id, j );
 
         // pre-calculate needed data
         double r = zt->operator[] ( i ).length;
@@ -556,7 +567,7 @@ void EKFSLAM::integration ( const MeasurementMarkerConstPtr &zt ) {
         // update gloabl mean with mean of landmark j: m_j = g(x, z) = T_x(x) * T_z * f(z)
         // with f(z) = (r*cos(a), r*sin(a), o), r..radius, a..alpha, o..orientation
         // (function f transforms measurements from spheric coordinates into cartesian coordinates)
-	cv::Vec<double, 4> homogenious_stage_vector_i = append(zt->operator[] ( i ).pose.state_vector(), 1);
+        cv::Vec<double, 4> homogenious_stage_vector_i = append(zt->operator[] ( i ).pose.state_vector(), 1);
         cv::Vec<double, 4> m_j = T_x_T_z * homogenious_stage_vector_i;
         y[3*j + 0][0] = m_j[0];
         y[3*j + 1][0] = m_j[1];

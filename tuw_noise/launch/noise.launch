@@ -15,7 +15,7 @@
       <param name="sigma_pitch" value="$(arg sigma_pitch)" />
       <param name="sigma_yaw" value="$(arg sigma_yaw)" />
       <param name="plot_data" value="$(arg plot_data)" />
-      <remap from="fiducial" to="base_fiducial_detection" />
+      <remap from="marker" to="base_marker_detection" />
   </node>
 </launch>
 

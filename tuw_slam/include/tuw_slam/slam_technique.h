@@ -54,7 +54,7 @@ public:
      **/
     virtual void setConfig ( const void *config ) = 0;
     /**
-     * starts the SLAM cycle and predicts the vehicles and fiducials poses at the timestamp encoded into the measurement
+     * starts the SLAM cycle and predicts the vehicles and landmark poses at the timestamp encoded into the measurement
      * @param yt TODO
      * @param C_Yt TODO
      * @param ut current control command

@@ -1,8 +1,8 @@
 #ifndef EKF_SLAM_H
 #define EKF_SLAM_H
 
-#include <tuw_geometry/tuw_geometry.h>
 #include "tuw_slam/slam_technique.h"
+#include <tuw_slam/measurement_marker.h>
 #include "tuw_slam/EKFSLAMConfig.h"
 
 namespace tuw {
@@ -49,6 +49,7 @@ private:
     **/
     struct CorrData {
         std::pair<size_t, size_t> ij;           /// i >= 0, j > 0...landmark j corressponds to measurement i (else no correspondence)
+        cv::Matx<double, 3, 3> Q;               /// measurement noise
         cv::Vec<double, 3> v;                   /// difference of obtained and predicted measurement
         cv::Matx<double, 3, 3> dx;              /// x deviation in H_ij = (dx 0 .. 0 dm 0 .. 0)
         cv::Matx<double, 3, 3> dm;              /// m deviation in H_ij = (dx 0 .. 0 dm 0 .. 0)
@@ -107,10 +108,7 @@ private:
     cv::Mat_<double> C_Y;                       /// covariance matrix of y = (x m1 m2 ...)
     cv::Mat_<double> C_X;                       /// covariance matrix of x
 
-    cv::Matx<double, 2, 2> M;                   /// control noise
-    cv::Matx<double, 3, 3> Q;                   /// measurement noise
-
-    std::map<size_t, size_t> f_kj;              /// correspondences: f[k] = j <-> fiducial k corressponds to landmark j
+    std::map<size_t, size_t> f_kj;              /// correspondences: f[k] = j <-> marker k corressponds to landmark j
 
     std::vector<CorrDataPtr> c_ij;              /// measurement to landmark correspondences
     std::vector<CorrDataPtr> c_ji;              /// landmark to measurement correspondences (ignore j = 0 since landmark numbering starts with 1)

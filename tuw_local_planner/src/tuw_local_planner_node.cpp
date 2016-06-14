@@ -42,7 +42,7 @@ LocalPlannerNode::LocalPlannerNode ( ros::NodeHandle & n )
 
     /// subscribe to sensor data
     sub_laser_ = n.subscribe ( "laser", 5, &LocalPlannerNode::callbackLaser, this );
-    sub_marker_ = n.subscribe ( "marker", 5, &LocalPlannerNode::callbackFiducial, this );
+    sub_marker_ = n.subscribe ( "marker", 5, &LocalPlannerNode::callbackMarker, this );
 
     /// defines a publisher for velocity commands
     pub_cmd_ = n.advertise<geometry_msgs::Twist> ( "cmd_vel", 1 );
@@ -95,9 +95,9 @@ void LocalPlannerNode::callbackLaser ( const sensor_msgs::LaserScan &_laser ) {
 
 /**
  * copies incoming marker messages to the base class
- * @param laser
+ * @param _marker
  **/
-void LocalPlannerNode::callbackFiducial ( const marker_msgs::MarkerDetection &_marker ) {
+void LocalPlannerNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
     try {
         tf::StampedTransform transform;
         tf_listener_->lookupTransform ( tf::resolve(n_.getNamespace(),"base_link"), _marker.header.frame_id, ros::Time ( 0 ), transform );
@@ -114,12 +114,6 @@ void LocalPlannerNode::callbackFiducial ( const marker_msgs::MarkerDetection &_m
     measurement_marker_.range_min() = _marker.distance_min;
     measurement_marker_.range_max() = _marker.distance_max;
     measurement_marker_.range_max_id() = _marker.distance_max_id;
-    //measurement_marker_.sigma_radial() = _marker.sigma_radial;
-    //measurement_marker_.sigma_polar() = _marker.sigma_polar;
-    //measurement_marker_.sigma_azimuthal() = _marker.sigma_azimuthal;
-    //measurement_marker_.sigma_roll() = _marker.sigma_roll;
-    //measurement_marker_.sigma_pitch() = _marker.sigma_pitch;
-    //measurement_marker_.sigma_yaw() = _marker.sigma_yaw;
     measurement_marker_.stamp() = _marker.header.stamp.toBoost();
     measurement_marker_.resize ( _marker.markers.size() );
 
@@ -128,7 +122,7 @@ void LocalPlannerNode::callbackFiducial ( const marker_msgs::MarkerDetection &_m
         tf::pointMsgToTF ( _marker.markers[i].pose.position, v );
         double orientation = tf::getYaw ( _marker.markers[i].pose.orientation );
 
-        measurement_marker_[i].id = _marker.markers[i].id;
+        measurement_marker_[i].id = _marker.markers[i].ids[0];
         measurement_marker_[i].length = v.length();
         measurement_marker_[i].angle = atan2 ( v.getY(), v.getX() );
         measurement_marker_[i].orientation = orientation;

@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   tuw_geometry
+  tuw_slam
   dynamic_reconfigure 
 )
 
@@ -106,9 +107,9 @@ generate_dynamic_reconfigure_options(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES tuw_local_planner
-#  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs tf
+  INCLUDE_DIRS include
+  LIBRARIES tuw_local_planner
+  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs tf tuw_geometry tuw_slam dynamic_reconfigure 
   DEPENDS OpenCV
 )
 

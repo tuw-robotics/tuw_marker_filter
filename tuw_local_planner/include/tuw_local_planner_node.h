@@ -24,7 +24,7 @@ private:
     ros::Publisher pub_cmd_;                                /// publisher for the motion commands
     std::shared_ptr<tf::TransformListener> tf_listener_;    /// listener to receive transformation messages
     void callbackLaser ( const sensor_msgs::LaserScan& );                                               /// callback function to execute on incoming scan data
-    void callbackFiducial ( const marker_msgs::MarkerDetection& );                                    /// callback function to execute on incoming marker data
+    void callbackMarker ( const marker_msgs::MarkerDetection& );                                        /// callback function to execute on incoming marker data
     void callbackConfigLocalPlanner ( tuw_local_planner::LocalPlannerConfig &config, uint32_t level );  /// callback function on incoming parameter changes
     dynamic_reconfigure::Server<tuw_local_planner::LocalPlannerConfig> reconfigureServer_;              /// parameter server stuff
     dynamic_reconfigure::Server<tuw_local_planner::LocalPlannerConfig>::CallbackType reconfigureFnc_;   /// parameter server stuff

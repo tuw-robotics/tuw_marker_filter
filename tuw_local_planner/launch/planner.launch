@@ -9,7 +9,7 @@
       <param name="mode" value="$(arg mode)" />
       <param name="plot_data" value="$(arg plot_data)" />
       <remap from="laser" to="base_scan" />
-      <remap from="fiducial" to="base_fiducial_detection" />
+      <remap from="marker" to="base_marker_detection" />
   </node>
 
   <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>

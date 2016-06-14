@@ -7,7 +7,7 @@ import math
 import matplotlib.pyplot as mplot
 
 from mpl_toolkits.mplot3d import Axes3D
-from sensor_msgs.msg import FiducialDetection
+from marker_msgs.msg import MarkerDetection
 
 class tuw_noise:
     def __init__(self, fig):
@@ -24,24 +24,18 @@ class tuw_noise:
         # initialize axes
         if self.plot_data:
             self.ax = fig.add_subplot(111, projection='3d')
-            self.ax.set_title("Detected fiducials")
+            self.ax.set_title("Detected markers")
             self.ax.set_xlim(-8, 8, False, False)
             self.ax.set_ylim(-8, 8, False, False)
             self.ax.set_zlim( 0, 8, False, False)
 
         # subscribe and advertise
-        rospy.Subscriber('fiducial', FiducialDetection, self.cb_fiducial)
-        self.pub = rospy.Publisher('fiducial_noise', FiducialDetection, queue_size=10)
+        rospy.Subscriber('marker', MarkerDetection, self.cb_marker)
+        self.pub = rospy.Publisher('marker_noise', MarkerDetection, queue_size=10)
 
-    def cb_fiducial(self, data):
-        #  copy found fiducials and set standard deviation of noise
+    def cb_marker(self, data):
+        #  copy found markers and set standard deviation of noise
         noisy_data = data
-        noisy_data.sigma_radial = self.sigma_radial
-        noisy_data.sigma_polar = self.sigma_polar
-        noisy_data.sigma_azimuthal = self.sigma_azimuthal
-        noisy_data.sigma_roll = self.sigma_roll
-        noisy_data.sigma_pitch = self.sigma_pitch
-        noisy_data.sigma_yaw = self.sigma_yaw
 
         # renew axes
         if self.plot_data:
@@ -54,10 +48,10 @@ class tuw_noise:
             self.ax.set_zlabel("Z axis")
 
         # add and visualize gaussian noise
-        for fiducial in noisy_data.fiducials:
+        for marker in noisy_data.markers:
             # store original pose in cartesian coordinate system 
-            p_o = (fiducial.pose.position.x, fiducial.pose.position.y, fiducial.pose.position.z)
-            q_o = (fiducial.pose.orientation.x, fiducial.pose.orientation.y, fiducial.pose.orientation.z, fiducial.pose.orientation.w)
+            p_o = (marker.pose.position.x, marker.pose.position.y, marker.pose.position.z)
+            q_o = (marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w)
 
             # calculate original pose in spherical coordinate system
             radial = math.sqrt(p_o[0]*p_o[0] + p_o[1]*p_o[1] + p_o[2]*p_o[2])
@@ -66,33 +60,33 @@ class tuw_noise:
             (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(q_o)
 
             # add gaussian noise in spherical coordinate system
-            if noisy_data.sigma_radial > 0:
-                radial += numpy.random.normal(0, noisy_data.sigma_radial)
-            if noisy_data.sigma_polar > 0:
-                polar += numpy.random.normal(0, noisy_data.sigma_polar)
-            if noisy_data.sigma_azimuthal > 0:
-                azimuthal += numpy.random.normal(0, noisy_data.sigma_azimuthal)
-            if noisy_data.sigma_roll > 0:
-                roll += numpy.random.normal(0, noisy_data.sigma_roll)
-            if noisy_data.sigma_pitch > 0:
-                pitch += numpy.random.normal(0, noisy_data.sigma_pitch)
-            if noisy_data.sigma_yaw > 0:
-                yaw += numpy.random.normal(0, noisy_data.sigma_yaw)
-            
+            if self.sigma_radial > 0:
+                radial += numpy.random.normal(0,self.sigma_radial)
+            if self.sigma_polar > 0:
+                polar += numpy.random.normal(0, self.sigma_polar)
+            if self.sigma_azimuthal > 0:
+                azimuthal += numpy.random.normal(0, self.sigma_azimuthal)
+            if self.sigma_roll > 0:
+                roll += numpy.random.normal(0, self.sigma_roll)
+            if self.sigma_pitch > 0:
+                pitch += numpy.random.normal(0, self.sigma_pitch)
+            if self.sigma_yaw > 0:
+                yaw += numpy.random.normal(0, self.sigma_yaw)
+
             # calculate noisy pose in cartesian coordinate system
             tmp = math.fabs(radial * math.sin(polar))
-            fiducial.pose.position.x = tmp * math.cos(azimuthal)
-            fiducial.pose.position.y = tmp * math.sin(azimuthal)
-            fiducial.pose.position.z = radial * math.cos(polar)
+            marker.pose.position.x = tmp * math.cos(azimuthal)
+            marker.pose.position.y = tmp * math.sin(azimuthal)
+            marker.pose.position.z = radial * math.cos(polar)
             tmp = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
-            fiducial.pose.orientation.x = tmp[0]
-            fiducial.pose.orientation.y = tmp[1]
-            fiducial.pose.orientation.z = tmp[2]
-            fiducial.pose.orientation.w = tmp[3]
-            
+            marker.pose.orientation.x = tmp[0]
+            marker.pose.orientation.y = tmp[1]
+            marker.pose.orientation.z = tmp[2]
+            marker.pose.orientation.w = tmp[3]
+
             # store noise pose in spherical coordinate system 
-            p_n = (fiducial.pose.position.x, fiducial.pose.position.y, fiducial.pose.position.z)
-            q_n = (fiducial.pose.orientation.x, fiducial.pose.orientation.y, fiducial.pose.orientation.z, fiducial.pose.orientation.w)
+            p_n = (marker.pose.position.x, marker.pose.position.y, marker.pose.position.z)
+            q_n = (marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w)
 
             if self.plot_data:
                 # vector indicating the orientation
@@ -104,12 +98,12 @@ class tuw_noise:
                 o_o = numpy.dot(R_o, o)
                 o_n = numpy.dot(R_n, o)
 
-                # plot ids and arrows indicating the pose of original and noisy fiducial
-                self.ax.text(p_o[0], p_o[1], p_o[2], fiducial.id, None)
+                # plot ids and arrows indicating the pose of original and noisy marker
+                self.ax.text(p_o[0], p_o[1], p_o[2], marker.id, None)
                 self.ax.quiver(p_o[0], p_o[1], p_o[2], o_o[0], o_o[1], o_o[2])
                 self.ax.quiver(p_n[0], p_n[1], p_n[2], o_n[0], o_n[1], o_n[2])
 
-        # publish and draw (noisy) fiducials
+        # publish and draw (noisy) markers
         self.pub.publish(noisy_data)
         if self.plot_data:
             self.fig.canvas.draw()
