@@ -1,7 +1,7 @@
 #include <tf/transform_datatypes.h>
 
-#include "tuw_slam_node.h"
-#include "tuw_slam/ekf_slam.h"
+#include "tuw_marker_slam_node.h"
+#include "tuw_marker_slam/ekf_slam.h"
 
 using namespace tuw;
 
@@ -87,7 +87,7 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
         sub_marker_ = n.subscribe ( "marker", 1, &SLAMNode::callbackMarker, this );
 
         /// start parameter server
-        reconfigureServerEKFSLAM_ = std::make_shared< dynamic_reconfigure::Server<tuw_slam::EKFSLAMConfig> > ( ros::NodeHandle ( "~/" + slam_technique_->getTypeName() ) );
+        reconfigureServerEKFSLAM_ = std::make_shared< dynamic_reconfigure::Server<tuw_marker_slam::EKFSLAMConfig> > ( ros::NodeHandle ( "~/" + slam_technique_->getTypeName() ) );
         reconfigureFncEKFSLAM_ = boost::bind ( &SLAMNode::callbackConfigEKFSLAM, this,  _1, _2 );
         reconfigureServerEKFSLAM_->setCallback ( reconfigureFncEKFSLAM_ );
         break;
@@ -274,12 +274,12 @@ void SLAMNode::callbackGroundTruth ( const nav_msgs::Odometry& ground_truth ) {
     pose_ground_truth_.set ( ground_truth.pose.pose.position.x, ground_truth.pose.pose.position.y, yaw );
 }
 
-void SLAMNode::callbackConfigSLAM ( tuw_slam::SLAMConfig &config, uint32_t level ) {
+void SLAMNode::callbackConfigSLAM ( tuw_marker_slam::SLAMConfig &config, uint32_t level ) {
     ROS_INFO ( "callbackConfigSLAM!" );
     config_ = config;
 }
 
-void SLAMNode::callbackConfigEKFSLAM ( tuw_slam::EKFSLAMConfig &config, uint32_t level ) {
+void SLAMNode::callbackConfigEKFSLAM ( tuw_marker_slam::EKFSLAMConfig &config, uint32_t level ) {
     ROS_INFO ( "callbackConfigEKFSLAM!" );
     slam_technique_->setConfig ( &config );
 }

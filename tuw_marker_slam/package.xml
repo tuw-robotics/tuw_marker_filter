@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>tuw_noise</name>
+  <name>tuw_marker_slam</name>
   <version>0.0.0</version>
-  <description>The tuw_noise package</description>
+  <description>The tuw_marker_slam package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/tuw_noise</url> -->
+  <!-- <url type="website">http://wiki.ros.org/tuw_local_planner</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
@@ -40,10 +40,30 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tuw_geometry</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>libboost-dev</build_depend>
+  <build_depend>libboost-date-time-dev</build_depend>
+  <build_depend>libopencv-dev</build_depend>
+  <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tuw_geometry</run_depend>  
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>libboost-dev</run_depend>
+  <run_depend>libboost-date-time-dev</run_depend>
+  <run_depend>libopencv-dev</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

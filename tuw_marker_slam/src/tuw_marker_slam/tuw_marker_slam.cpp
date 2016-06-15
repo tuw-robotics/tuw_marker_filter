@@ -1,4 +1,4 @@
-#include "tuw_slam/tuw_slam.h"
+#include "tuw_marker_slam/tuw_marker_slam.h"
 
 using namespace tuw;
 

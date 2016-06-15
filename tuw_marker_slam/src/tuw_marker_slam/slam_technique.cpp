@@ -1,4 +1,4 @@
-#include "tuw_slam/slam_technique.h"
+#include "tuw_marker_slam/slam_technique.h"
 
 using namespace tuw;
 

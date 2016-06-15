@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   tuw_geometry
-  tuw_slam
+  tuw_marker_slam
   dynamic_reconfigure 
 )
 
@@ -109,7 +109,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES tuw_local_planner
-  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs tf tuw_geometry tuw_slam dynamic_reconfigure 
+  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs tf tuw_geometry tuw_marker_slam dynamic_reconfigure 
   DEPENDS OpenCV
 )
 

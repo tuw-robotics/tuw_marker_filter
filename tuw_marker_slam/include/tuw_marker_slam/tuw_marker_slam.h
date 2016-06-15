@@ -1,10 +1,10 @@
-#ifndef TUW_SLAM_H
-#define TUW_SLAM_H
+#ifndef TUW_MARKER_SLAM_H
+#define TUW_MARKER_SLAM_H
 
 #include <tuw_geometry/tuw_geometry.h>
 #include <opencv2/core/core.hpp>
-#include "tuw_slam/slam_technique.h"
-#include "tuw_slam/SLAMConfig.h"
+#include "tuw_marker_slam/slam_technique.h"
+#include "tuw_marker_slam/SLAMConfig.h"
 
 namespace tuw {
 /**
@@ -23,7 +23,7 @@ protected:
     unsigned long loop_count_;                              /// counts the filter cycles
     SLAMTechniquePtr slam_technique_;                       /// filter used to estimate the vehicles pose
 
-    tuw_slam::SLAMConfig config_;                           /// global parameters
+    tuw_marker_slam::SLAMConfig config_;                           /// global parameters
 
     /**
      * starts the localization and mapping
@@ -32,4 +32,4 @@ protected:
 };
 };
 
-#endif // TUW_SLAM_H
+#endif // TUW_MARKER_SLAM_H

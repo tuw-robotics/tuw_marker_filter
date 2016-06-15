@@ -1,5 +1,5 @@
-#ifndef TUW_SLAM_NODE_H
-#define TUW_SLAM_NODE_H
+#ifndef TUW_MARKER_SLAM_NODE_H
+#define TUW_MARKER_SLAM_NODE_H
 
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
@@ -14,9 +14,9 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <dynamic_reconfigure/server.h>
 
-#include "tuw_slam/tuw_slam.h"
-#include "tuw_slam/SLAMConfig.h"
-#include "tuw_slam/EKFSLAMConfig.h"
+#include "tuw_marker_slam/tuw_marker_slam.h"
+#include "tuw_marker_slam/SLAMConfig.h"
+#include "tuw_marker_slam/EKFSLAMConfig.h"
 
 /**
  * class to cover the ros communication for the self-localization
@@ -50,13 +50,13 @@ private:
     void callbackMarker ( const marker_msgs::MarkerDetection& );                                        /// callback function to catch incoming sensor data
     void callbackGroundTruth ( const nav_msgs::Odometry& );                                             /// callback function to catch ground truth pose messages
 
-    dynamic_reconfigure::Server<tuw_slam::SLAMConfig> reconfigureServerSLAM_;                           /// parameter server stuff general use
-    dynamic_reconfigure::Server<tuw_slam::SLAMConfig>::CallbackType reconfigureFncSLAM_;                /// parameter server stuff general use
-    void callbackConfigSLAM ( tuw_slam::SLAMConfig &config, uint32_t level );                           /// callback function on incoming parameter changes for general use
+    dynamic_reconfigure::Server<tuw_marker_slam::SLAMConfig> reconfigureServerSLAM_;                           /// parameter server stuff general use
+    dynamic_reconfigure::Server<tuw_marker_slam::SLAMConfig>::CallbackType reconfigureFncSLAM_;                /// parameter server stuff general use
+    void callbackConfigSLAM ( tuw_marker_slam::SLAMConfig &config, uint32_t level );                           /// callback function on incoming parameter changes for general use
 
-    std::shared_ptr<dynamic_reconfigure::Server<tuw_slam::EKFSLAMConfig> > reconfigureServerEKFSLAM_;   /// parameter server stuff for the EKF SLAM
-    dynamic_reconfigure::Server<tuw_slam::EKFSLAMConfig>::CallbackType reconfigureFncEKFSLAM_;          /// parameter server stuff for the EKF SLAM
-    void callbackConfigEKFSLAM ( tuw_slam::EKFSLAMConfig &config, uint32_t level );                     /// callback function on incoming parameter changes for the EKF SLAM
+    std::shared_ptr<dynamic_reconfigure::Server<tuw_marker_slam::EKFSLAMConfig> > reconfigureServerEKFSLAM_;   /// parameter server stuff for the EKF SLAM
+    dynamic_reconfigure::Server<tuw_marker_slam::EKFSLAMConfig>::CallbackType reconfigureFncEKFSLAM_;          /// parameter server stuff for the EKF SLAM
+    void callbackConfigEKFSLAM ( tuw_marker_slam::EKFSLAMConfig &config, uint32_t level );                     /// callback function on incoming parameter changes for the EKF SLAM
 };
 
-#endif // TUW_SLAM_NODE_H
+#endif // TUW_MARKER_SLAM_NODE_H

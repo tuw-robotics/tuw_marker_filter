@@ -37,7 +37,7 @@
       <remap from="marker" to="$(arg marker_noise)" />
   </node>
 
-  <node pkg="tuw_slam" type="tuw_slam_node" name="slam" output="screen">
+  <node pkg="tuw_marker_slam" type="tuw_marker_slam_node" name="slam" output="screen">
       <param name="mode" value="$(arg slam_mode)" />
       <remap from="cmd" to="$(arg cmd)" />
       <remap from="marker" to="$(arg marker_noise)" />
@@ -45,5 +45,5 @@
 
   <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tuw_slam)/rviz/config.rviz"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tuw_marker_slam)/rviz/config.rviz"/>
 </launch>

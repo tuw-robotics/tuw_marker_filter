@@ -9,17 +9,19 @@ import matplotlib.pyplot as mplot
 from mpl_toolkits.mplot3d import Axes3D
 from marker_msgs.msg import MarkerDetection
 
-class tuw_noise:
+class tuw_marker_noise:
     def __init__(self, fig):
         # get and store parameters
         self.fig = fig
-        self.sigma_radial = rospy.get_param('~sigma_radial')
-        self.sigma_polar = rospy.get_param('~sigma_polar')
-        self.sigma_azimuthal = rospy.get_param('~sigma_azimuthal')
-        self.sigma_roll = rospy.get_param('~sigma_roll')
-        self.sigma_pitch = rospy.get_param('~sigma_pitch')
-        self.sigma_yaw = rospy.get_param('~sigma_yaw')
-        self.plot_data = rospy.get_param('~plot_data')
+        self.beta1 = rospy.get_param('~beta1')
+        self.beta2 = rospy.get_param('~beta2')
+        self.beta3 = rospy.get_param('~beta3')
+        self.beta4 = rospy.get_param('~beta4')
+        self.beta5 = rospy.get_param('~beta5')
+        self.beta6 = rospy.get_param('~beta6')
+        self.beta7 = rospy.get_param('~beta7')
+        self.beta8 = rospy.get_param('~beta8')
+        self.beta9 = rospy.get_param('~beta9')
 
         # initialize axes
         if self.plot_data:
@@ -110,14 +112,14 @@ class tuw_noise:
 
 if __name__ == '__main__':
     # initialize ros node
-    rospy.init_node('tuw_noise', anonymous=True)
+    rospy.init_node('tuw_marker_noise', anonymous=True)
 
     # get parameters
     plot_data = rospy.get_param('~plot_data')
 
-    # create tuw_noise object
+    # create tuw_marker_noise object
     fig = mplot.figure()
-    noise = tuw_noise(fig)
+    noise = tuw_marker_noise(fig)
 
     # keep python from exiting until this node is stopped
     if plot_data:

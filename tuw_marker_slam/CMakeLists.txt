@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(tuw_slam)
+project(tuw_marker_slam)
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 ## Find catkin macros and libraries
@@ -111,7 +111,7 @@ generate_dynamic_reconfigure_options(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES tuw_slam
+  LIBRARIES tuw_marker_slam
   CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs visualization_msgs tf tuw_geometry dynamic_reconfigure 
   DEPENDS Boost OpenCV
 )
@@ -131,8 +131,8 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(tuw_slam
-  src/${PROJECT_NAME}/tuw_slam.cpp
+add_library(tuw_marker_slam
+  src/${PROJECT_NAME}/tuw_marker_slam.cpp
   src/${PROJECT_NAME}/slam_technique.cpp
   src/${PROJECT_NAME}/ekf_slam.cpp
   src/${PROJECT_NAME}/measurement_marker.cpp
@@ -142,27 +142,27 @@ add_library(tuw_slam
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(tuw_slam 
+add_dependencies(tuw_marker_slam 
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 
 ## Declare a C++ executable
-add_executable(tuw_slam_node
-  src/tuw_slam_node.cpp
+add_executable(tuw_marker_slam_node
+  src/tuw_marker_slam_node.cpp
 )
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(tuw_slam_node 
+add_dependencies(tuw_marker_slam_node 
   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
   ${catkin_EXPORTED_TARGETS}
   ${PROJECT_NAME}_gencfg
 )
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(tuw_slam_node
-  tuw_slam
+target_link_libraries(tuw_marker_slam_node
+  tuw_marker_slam
   ${catkin_LIBRARIES}
 )
 

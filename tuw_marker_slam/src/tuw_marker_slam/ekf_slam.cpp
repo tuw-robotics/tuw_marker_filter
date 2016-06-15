@@ -1,5 +1,5 @@
-#include "tuw_slam/ekf_slam.h"
-#include "tuw_slam/munkre.h"
+#include "tuw_marker_slam/ekf_slam.h"
+#include "tuw_marker_slam/munkre.h"
 #include <boost/math/distributions/chi_squared.hpp>
 
 using namespace tuw;
@@ -53,7 +53,7 @@ void EKFSLAM::cycle ( std::vector<Pose2D> &yt, cv::Mat_<double> &C_Yt, const Com
 }
 
 void EKFSLAM::setConfig ( const void *config ) {
-    config_ = * ( ( tuw_slam::EKFSLAMConfig* ) config );
+    config_ = * ( ( tuw_marker_slam::EKFSLAMConfig* ) config );
 }
 
 void EKFSLAM::prediction ( const Command &ut ) {

@@ -1,9 +1,9 @@
 #ifndef EKF_SLAM_H
 #define EKF_SLAM_H
 
-#include "tuw_slam/slam_technique.h"
-#include <tuw_slam/measurement_marker.h>
-#include "tuw_slam/EKFSLAMConfig.h"
+#include "tuw_marker_slam/slam_technique.h"
+#include <tuw_marker_slam/measurement_marker.h>
+#include "tuw_marker_slam/EKFSLAMConfig.h"
 
 namespace tuw {
 
@@ -30,7 +30,7 @@ public:
     void cycle ( std::vector<Pose2D> &yt, cv::Mat_<double> &C_Yt, const Command &ut, const MeasurementConstPtr &zt );
     /**
      * virtual function to set the config parameters
-     * @param config of type tuw_slam::EKFSLAMConfig*
+     * @param config of type tuw_marker_slam::EKFSLAMConfig*
      **/
     void setConfig ( const void *config );
 private:
@@ -101,7 +101,7 @@ private:
      **/
     void integration ( const MeasurementMarkerConstPtr &zt );
 
-    tuw_slam::EKFSLAMConfig config_;            /// parameters
+    tuw_marker_slam::EKFSLAMConfig config_;     /// parameters
 
     cv::Mat_<double> y;                         /// mean vector of y = (x m1 m2 ...)
     cv::Mat_<double> x;                         /// mean vector of x
