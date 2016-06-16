@@ -4,8 +4,14 @@
 
 using namespace tuw;
 
-EKFSLAM::EKFSLAM() :
-    SLAMTechnique ( EKF ) {
+EKFSLAM::EKFSLAM( const double beta_1, const double beta_2, const double beta_3, const double beta_4, const double beta_5, const double beta_6 ) :
+    SLAMTechnique ( EKF ),
+    beta_1_ ( beta_1 ),
+    beta_2_ ( beta_2 ),
+    beta_3_ ( beta_3 ),
+    beta_4_ ( beta_4 ),
+    beta_5_ ( beta_5 ),
+    beta_6_ ( beta_6 ) {
 }
 
 void EKFSLAM::init() {
@@ -132,13 +138,11 @@ void EKFSLAM::data_association ( const MeasurementMarkerConstPtr &zt ) {
 
     // find correspondences based on measurement marker IDs
     for ( size_t i = 0; i < zt->size(); i++ ) {
-        assert ( zt->operator[] ( i ).id >= 0 );
-
-        if ( zt->operator[] ( i ).id == 0 ) {
+        if ( zt->operator[] ( i ).ids.size() == 0 ) {
             // invalid measurement
         } else {
             // valid measurement
-            std::map<size_t, size_t>::iterator it = f_kj.find ( zt->operator[] ( i ).id );
+            std::map<int, size_t>::iterator it = f_kj.find ( zt->operator[] ( i ).ids[0] );
 
             if ( it != f_kj.end() ) {
                 // known landmark j
@@ -186,7 +190,7 @@ void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gam
         assert ( c_ij[i] == nullptr || c_ij[i]->ij.first == i );
 
         // consider only measurements without marker IDs
-        if ( zt->operator[] ( i ).id > 0) continue;
+        if ( zt->operator[] ( i ).ids.size() > 0) continue;
         assert ( c_ij[i] == nullptr );
 
         double min_d_2 = std::numeric_limits<double>::infinity();
@@ -195,7 +199,7 @@ void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gam
             assert ( c_ji[j] == nullptr || c_ji[j]->ij.second == j );
 
             // consider only landmarks without correspondences based on measurement marker IDs
-            if ( c_ji[j] != nullptr && zt->operator[] ( c_ji[j]->ij.first ).id > 0 ) continue;
+            if ( c_ji[j] != nullptr && zt->operator[] ( c_ji[j]->ij.first ).ids.size() > 0 ) continue;
 
             // create correspondence data
             CorrDataPtr c = std::make_shared<CorrData>();
@@ -222,7 +226,7 @@ void EKFSLAM::NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gam
             // landmark already correspond to another measurement
             size_t old_i = c_ji[min_j]->ij.first;
             ROS_INFO ( "measurements %lu and %lu correspond both to landmark %lu", old_i, min_i, min_j );
-            if ( zt->operator[] ( old_i ).id > 0 ) {
+            if ( zt->operator[] ( old_i ).ids.size() > 0 ) {
                 // old correspondence is fix -> reject current measurement
                 ROS_INFO ( "reject measurement %lu", min_i );
             } else {
@@ -263,7 +267,7 @@ void EKFSLAM::NNSF_global ( const MeasurementMarkerConstPtr &zt, const double ga
         assert ( c_ij[i] == nullptr || c_ij[i]->ij.first == i );
 
         // consider only measurements without marker IDs
-        if ( zt->operator[] ( i ).id > 0 ) continue;
+        if ( zt->operator[] ( i ).ids.size() > 0 ) continue;
         assert ( c_ij[i] == nullptr );
 
         map_i.push_back(i);
@@ -278,7 +282,7 @@ void EKFSLAM::NNSF_global ( const MeasurementMarkerConstPtr &zt, const double ga
         assert ( c_ji[j] == nullptr || c_ji[j]->ij.second == j );
 
         // consider only landmarks without correspondences based on measurement marker IDs
-        assert ( c_ji[j] == nullptr || zt->operator[] ( c_ji[j]->ij.first ).id > 0);
+        assert ( c_ji[j] == nullptr || zt->operator[] ( c_ji[j]->ij.first ).ids.size() > 0);
         if ( c_ji[j] != nullptr ) continue;
 
         map_j.push_back(j);
@@ -385,10 +389,9 @@ void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataP
     // measurement noise
     double l = zt->operator[] ( i ).length;
     double a = zt->operator[] ( i ).angle;
-    double o = zt->operator[] ( i ).orientation;
-    corr->Q = cv::Matx<double, 3,3> ( config_.beta_1*l*l + config_.beta_2*a*a + config_.beta_3*o*o, 0, 0,
-                                      0, config_.beta_4*l*l + config_.beta_5*a*a + config_.beta_6*o*o, 0,
-                                      0, 0, config_.beta_7*l*l + config_.beta_8*a*a + config_.beta_9*o*o );
+    corr->Q = cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
+                                      0, beta_3_*l*l + beta_4_*a*a, 0,
+                                      0, 0, beta_5_*l*l + beta_6_*a*a );
 
     // S_i = H_i*C_Y*H_i^T + Q
     cv::Matx<double, 3, 3> C_X_ = cv::Mat_<double> ( C_Y, cv::Range ( 0, 3 ), cv::Range ( 0, 3 ) );
@@ -522,20 +525,19 @@ void EKFSLAM::integration ( const MeasurementMarkerConstPtr &zt ) {
 
     for ( auto i: z_new ) {
         // consider only measurements with marker IDs for new landmarks
-        assert ( zt->operator[] ( i ).id > 0 );
+        assert ( zt->operator[] ( i ).ids.size() > 0 );
 
         // measurement noise
         double l = zt->operator[] ( i ).length;
         double a = zt->operator[] ( i ).angle;
-        double o = zt->operator[] ( i ).orientation;
-        cv::Matx<double, 3,3> Q = cv::Matx<double, 3,3> ( config_.beta_1*l*l + config_.beta_2*a*a + config_.beta_3*o*o, 0, 0,
-                                  0, config_.beta_4*l*l + config_.beta_5*a*a + config_.beta_6*o*o, 0,
-                                  0, 0, config_.beta_7*l*l + config_.beta_8*a*a + config_.beta_9*o*o );
+        cv::Matx<double, 3,3> Q = cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
+                                  0, beta_3_*l*l + beta_4_*a*a, 0,
+                                  0, 0, beta_5_*l*l + beta_6_*a*a );
 
         // number landmarks found in ascending order
         int j = y.rows/3;
-        f_kj.insert ( std::pair<size_t,size_t> ( zt->operator[] ( i ).id, j ) );
-        ROS_INFO ( "new landmark found: marker %d corresponds to landmark %d", zt->operator[] ( i ).id, j );
+        f_kj.insert ( std::pair<int,size_t> ( zt->operator[] ( i ).ids[0], j ) );
+        ROS_INFO ( "new landmark found: marker %d corresponds to landmark %d", zt->operator[] ( i ).ids[0], j );
 
         // pre-calculate needed data
         double r = zt->operator[] ( i ).length;

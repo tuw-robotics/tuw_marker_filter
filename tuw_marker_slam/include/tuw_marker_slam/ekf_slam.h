@@ -19,7 +19,7 @@ public:
     /**
     * Constructor
     **/
-    EKFSLAM();
+    EKFSLAM( const double beta_1, const double beta_2, const double beta_3, const double beta_4, const double beta_5, const double beta_6 );
     /**
      * starts the SLAM cycle and predicts the robot and landmark poses at the timestamp encoded into the measurement
      * @param yt TODO
@@ -102,13 +102,19 @@ private:
     void integration ( const MeasurementMarkerConstPtr &zt );
 
     tuw_marker_slam::EKFSLAMConfig config_;     /// parameters
+    const double beta_1_;
+    const double beta_2_;
+    const double beta_3_;
+    const double beta_4_;
+    const double beta_5_;
+    const double beta_6_;
 
     cv::Mat_<double> y;                         /// mean vector of y = (x m1 m2 ...)
     cv::Mat_<double> x;                         /// mean vector of x
     cv::Mat_<double> C_Y;                       /// covariance matrix of y = (x m1 m2 ...)
     cv::Mat_<double> C_X;                       /// covariance matrix of x
 
-    std::map<size_t, size_t> f_kj;              /// correspondences: f[k] = j <-> marker k corressponds to landmark j
+    std::map<int, size_t> f_kj;                 /// correspondences: f[k] = j <-> marker k corressponds to landmark j
 
     std::vector<CorrDataPtr> c_ij;              /// measurement to landmark correspondences
     std::vector<CorrDataPtr> c_ji;              /// landmark to measurement correspondences (ignore j = 0 since landmark numbering starts with 1)

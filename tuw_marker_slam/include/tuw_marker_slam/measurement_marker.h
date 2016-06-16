@@ -20,7 +20,8 @@ public:
     * class to represent a single marker with redundant information
     **/
     struct Marker {
-        int id;
+        std::vector<int> ids;
+        std::vector<double> ids_confidence;
 
         double length;
         double angle;

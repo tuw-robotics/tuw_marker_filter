@@ -13,15 +13,13 @@ class tuw_marker_noise:
     def __init__(self, fig):
         # get and store parameters
         self.fig = fig
-        self.beta1 = rospy.get_param('~beta1')
-        self.beta2 = rospy.get_param('~beta2')
-        self.beta3 = rospy.get_param('~beta3')
-        self.beta4 = rospy.get_param('~beta4')
-        self.beta5 = rospy.get_param('~beta5')
-        self.beta6 = rospy.get_param('~beta6')
-        self.beta7 = rospy.get_param('~beta7')
-        self.beta8 = rospy.get_param('~beta8')
-        self.beta9 = rospy.get_param('~beta9')
+        self.plot_data = rospy.get_param('~plot_data')
+        self.beta_1 = rospy.get_param('~beta_1')
+        self.beta_2 = rospy.get_param('~beta_2')
+        self.beta_3 = rospy.get_param('~beta_3')
+        self.beta_4 = rospy.get_param('~beta_4')
+        self.beta_5 = rospy.get_param('~beta_5')
+        self.beta_6 = rospy.get_param('~beta_6')
 
         # initialize axes
         if self.plot_data:
@@ -56,24 +54,24 @@ class tuw_marker_noise:
             q_o = (marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w)
 
             # calculate original pose in spherical coordinate system
-            radial = math.sqrt(p_o[0]*p_o[0] + p_o[1]*p_o[1] + p_o[2]*p_o[2])
+            radial = math.sqrt(p_o[0]**2 + p_o[1]**2 + p_o[2]**2)
             polar = math.acos(p_o[2]/radial)
             azimuthal = math.atan2(p_o[1], p_o[0])
             (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(q_o)
 
+            # calculate noise
+            sigma_radial =    math.sqrt(self.beta_1 * radial**2 + self.beta_2 * azimuthal**2)
+            sigma_azimuthal = math.sqrt(self.beta_3 * radial**2 + self.beta_4 * azimuthal**2)
+            sigma_yaw =       math.sqrt(self.beta_5 * radial**2 + self.beta_6 * azimuthal**2)
+
+            #sigma_radial =    0.2
+            #sigma_azimuthal = 0.05
+            #sigma_yaw =       0.1
+
             # add gaussian noise in spherical coordinate system
-            if self.sigma_radial > 0:
-                radial += numpy.random.normal(0,self.sigma_radial)
-            if self.sigma_polar > 0:
-                polar += numpy.random.normal(0, self.sigma_polar)
-            if self.sigma_azimuthal > 0:
-                azimuthal += numpy.random.normal(0, self.sigma_azimuthal)
-            if self.sigma_roll > 0:
-                roll += numpy.random.normal(0, self.sigma_roll)
-            if self.sigma_pitch > 0:
-                pitch += numpy.random.normal(0, self.sigma_pitch)
-            if self.sigma_yaw > 0:
-                yaw += numpy.random.normal(0, self.sigma_yaw)
+            radial += numpy.random.normal(0, sigma_radial)
+            azimuthal += numpy.random.normal(0, sigma_azimuthal)
+            yaw += numpy.random.normal(0, sigma_yaw)
 
             # calculate noisy pose in cartesian coordinate system
             tmp = math.fabs(radial * math.sin(polar))
@@ -101,7 +99,7 @@ class tuw_marker_noise:
                 o_n = numpy.dot(R_n, o)
 
                 # plot ids and arrows indicating the pose of original and noisy marker
-                self.ax.text(p_o[0], p_o[1], p_o[2], marker.id, None)
+                self.ax.text(p_o[0], p_o[1], p_o[2], marker.ids[0], None)
                 self.ax.quiver(p_o[0], p_o[1], p_o[2], o_o[0], o_o[1], o_o[2])
                 self.ax.quiver(p_n[0], p_n[1], p_n[2], o_n[0], o_n[1], o_n[2])
 

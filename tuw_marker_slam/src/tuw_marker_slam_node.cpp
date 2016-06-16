@@ -34,14 +34,23 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
     : SLAM (),
       n_ ( n ),
       n_param_ ( "~" ) {
+    // read in parameters
     int mode;
-
-    // reads shared parameter on the operation mode
     n_param_.getParam ( "mode", mode );
+
     switch ( mode ) {
     case SLAMTechnique::EKF:
+        // read in EKF specific parameters
+        double beta_1, beta_2, beta_3, beta_4, beta_5, beta_6;
+        n_param_.getParam ( "beta_1", beta_1 );
+        n_param_.getParam ( "beta_2", beta_2 );
+        n_param_.getParam ( "beta_3", beta_3 );
+        n_param_.getParam ( "beta_4", beta_4 );
+        n_param_.getParam ( "beta_5", beta_5 );
+        n_param_.getParam ( "beta_6", beta_6 );
+
         zt_ = std::make_shared<tuw::MeasurementMarker>();
-        slam_technique_ = std::make_shared<tuw::EKFSLAM>();
+        slam_technique_ = std::make_shared<tuw::EKFSLAM>( beta_1, beta_2, beta_3, beta_4, beta_5, beta_6 );
         break;
     default:
         ROS_ERROR ( "[%s] mode %i is not supported", ros::this_node::getName().c_str(), mode );
@@ -252,7 +261,8 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
         tf::pointMsgToTF ( _marker.markers[i].pose.position, v );
         double orientation = tf::getYaw ( _marker.markers[i].pose.orientation );
 
-        zt->operator[] ( i ).id = _marker.markers[i].ids[0];
+        zt->operator[] ( i ).ids = _marker.markers[i].ids;
+        zt->operator[] ( i ).ids_confidence = _marker.markers[i].ids_confidence;
         zt->operator[] ( i ).length = v.length();
         zt->operator[] ( i ).angle = atan2 ( v.getY(), v.getX() );
         zt->operator[] ( i ).orientation = orientation;

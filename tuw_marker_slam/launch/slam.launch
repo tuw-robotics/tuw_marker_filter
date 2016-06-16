@@ -1,12 +1,12 @@
 <launch>
   <!-- Parameters -->
   <arg name="world" default="fiducial2" />
-  <arg name="sigma_radial" default="0.2" />
-  <arg name="sigma_polar" default="0.0" />
-  <arg name="sigma_azimuthal" default="0.05" />
-  <arg name="sigma_roll" default="0.0" />
-  <arg name="sigma_pitch" default="0.0" />
-  <arg name="sigma_yaw" default="0.1" />
+  <arg name="beta_1" default="1.11840023647110e-03" />
+  <arg name="beta_2" default="1.08841788897499e-02" />
+  <arg name="beta_3" default="4.49500672685259e-07" />
+  <arg name="beta_4" default="7.03448116182080e-05" />
+  <arg name="beta_5" default="2.88386534626639e-06" />
+  <arg name="beta_6" default="2.46471128604309e-05" />
   <arg name="plot_data" default="false" />
   <arg name="planner_mode" default="0" />
   <arg name="slam_mode" default="0" />
@@ -19,13 +19,13 @@
 
   <node name="stage_ros" pkg="stage_ros" type="stageros" args="$(find stage_ros)/world/$(arg world).world"/>
 
-  <node pkg="tuw_noise" type="tuw_noise.py" name="tuw_noise">
-      <param name="sigma_radial" value="$(arg sigma_radial)" />
-      <param name="sigma_polar" value="$(arg sigma_polar)" />
-      <param name="sigma_azimuthal" value="$(arg sigma_azimuthal)" />
-      <param name="sigma_roll" value="$(arg sigma_roll)" />
-      <param name="sigma_pitch" value="$(arg sigma_pitch)" />
-      <param name="sigma_yaw" value="$(arg sigma_yaw)" />
+  <node pkg="tuw_marker_noise" type="tuw_marker_noise.py" name="tuw_marker_noise">
+      <param name="beta_1" value="$(arg beta_1)" />
+      <param name="beta_2" value="$(arg beta_2)" />
+      <param name="beta_3" value="$(arg beta_3)" />
+      <param name="beta_4" value="$(arg beta_4)" />
+      <param name="beta_5" value="$(arg beta_5)" />
+      <param name="beta_6" value="$(arg beta_6)" />
       <param name="plot_data" value="$(arg plot_data)" />
       <remap from="marker" to="$(arg marker_clear)" />
   </node>
@@ -39,6 +39,12 @@
 
   <node pkg="tuw_marker_slam" type="tuw_marker_slam_node" name="slam" output="screen">
       <param name="mode" value="$(arg slam_mode)" />
+      <param name="beta_1" value="$(arg beta_1)" />
+      <param name="beta_2" value="$(arg beta_2)" />
+      <param name="beta_3" value="$(arg beta_3)" />
+      <param name="beta_4" value="$(arg beta_4)" />
+      <param name="beta_5" value="$(arg beta_5)" />
+      <param name="beta_6" value="$(arg beta_6)" />
       <remap from="cmd" to="$(arg cmd)" />
       <remap from="marker" to="$(arg marker_noise)" />
   </node>
