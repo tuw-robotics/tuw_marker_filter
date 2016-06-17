@@ -1,0 +1,15 @@
+<launch>
+  <!-- Parameters -->
+  <arg name="input" default="$(find tuw_marker_noise)/input/visual_marker_cave.csv" />
+  <arg name="output_dir" default="$(find tuw_marker_noise)/output" />
+
+  <!-- Remapping -->
+  <arg name="markers" default="markers" />
+
+  <node pkg="tuw_marker_noise" type="tuw_record.py" name="tuw_marker_noise">
+      <param name="input" value="$(arg input)" />
+      <param name="output_dir" value="$(arg output_dir)" />
+      <remap from="markers" to="$(arg markers)" />
+  </node>
+</launch>
+
