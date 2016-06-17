@@ -9,9 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   geometry_msgs
-  nav_msgs
-  sensor_msgs
-  visualization_msgs
   tf
   tuw_geometry
   dynamic_reconfigure 
@@ -112,7 +109,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES tuw_marker_slam
-  CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs visualization_msgs tf tuw_geometry dynamic_reconfigure 
+  CATKIN_DEPENDS roscpp rospy geometry_msgs tf tuw_geometry dynamic_reconfigure 
   DEPENDS Boost OpenCV
 )
 

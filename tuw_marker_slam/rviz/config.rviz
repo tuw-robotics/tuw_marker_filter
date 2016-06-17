@@ -3,13 +3,7 @@ Panels:
     Help Height: 81
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /Global Options1
-        - /Status1
-        - /MarkerDetection1
-        - /TF1/Frames1
-        - /MarkerWithCovariance1
-        - /MarkerWithCovarianceArray1
+      Expanded: ~
       Splitter Ratio: 0.538217
     Tree Height: 440
   - Class: rviz/Selection
@@ -46,7 +40,7 @@ Visualization Manager:
       Normal Cell Count: 0
       Offset:
         X: 0
-        Y: 0
+        Y: 5
         Z: 0
       Plane: XY
       Plane Cell Count: 18
@@ -61,51 +55,6 @@ Visualization Manager:
       Shape: Cube
       Topic: /marker_noise
       Value: true
-    - Class: rviz/TF
-      Enabled: true
-      Frame Timeout: 15
-      Frames:
-        All Enabled: false
-        base_fiducial_link:
-          Value: false
-        base_footprint:
-          Value: false
-        base_laser_link:
-          Value: false
-        base_link:
-          Value: false
-        map:
-          Value: true
-        odom:
-          Value: true
-        slam_pose:
-          Value: true
-      Marker Scale: 1
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
-      Tree:
-        odom:
-          base_footprint:
-            base_link:
-              base_fiducial_link:
-                {}
-              base_laser_link:
-                {}
-          map:
-            slam_pose:
-              {}
-      Update Interval: 0
-      Value: true
-    - Class: marker_rviz_plugin/MarkerWithCovariance
-      Color Pose: 204; 51; 0
-      Color Variance: 204; 51; 204
-      Enabled: true
-      Name: MarkerWithCovariance
-      Scale Pose: 0.4
-      Topic: /slam/xt
-      Value: true
     - Class: marker_rviz_plugin/MarkerWithCovarianceArray
       Color Pose: 0; 0; 255
       Color Variance: 255; 255; 0
@@ -114,10 +63,43 @@ Visualization Manager:
       Scale Pose: 0.4
       Topic: /slam/mt
       Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        base_fiducial_link:
+          Value: true
+        base_footprint:
+          Value: true
+        base_laser_link:
+          Value: true
+        base_link:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        map:
+          odom:
+            base_footprint:
+              base_link:
+                base_fiducial_link:
+                  {}
+                base_laser_link:
+                  {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: odom
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -138,16 +120,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 24.3869
+      Distance: 25
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.0143649
-        Y: 0.797564
-        Z: 0.00079759
+        X: -0.16164
+        Y: 5.67483
+        Z: 0.00567487
       Name: Current View
       Near Clip Distance: 0.01
       Pitch: 1.5698

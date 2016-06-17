@@ -1,6 +1,6 @@
 <launch>
   <!-- Parameters -->
-  <arg name="world" default="fiducial2" />
+  <arg name="world" default="fiducial" />
   <arg name="beta_1" default="1.11840023647110e-03" />
   <arg name="beta_2" default="1.08841788897499e-02" />
   <arg name="beta_3" default="4.49500672685259e-07" />
