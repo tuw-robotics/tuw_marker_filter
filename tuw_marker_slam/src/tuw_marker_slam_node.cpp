@@ -75,16 +75,14 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
     sub_ground_truth_ = n.subscribe ( "base_pose_ground_truth", 1, &SLAMNode::callbackGroundTruth, this );
 
     /// defines publishers for the resulting robot pose
-    pub_xt_ = n_param_.advertise<geometry_msgs::PoseStamped> ( "xt", 1 );
-    pub_xt_var_ = n_param_.advertise<visualization_msgs::Marker> ( "xt_var", 1 );
-    xt_.header.seq = 0;
-    xt_var_.header.seq = 0;
+    pub_xt_ = n_param_.advertise<marker_msgs::MarkerWithCovarianceStamped> ( "xt", 1 );
     n_param_.param<std::string> ( "frame_id_map", xt_.header.frame_id, "map" );
-    n_param_.param<std::string> ( "frame_id_map", xt_var_.header.frame_id, "map" );
+    xt_.header.seq = 0;
 
     /// defines publishers for the resulting landmark poses
-    pub_mt_ = n_param_.advertise<geometry_msgs::PoseArray> ( "mt", 1 );
-    pub_mt_var_ = n_param_.advertise<visualization_msgs::MarkerArray> ( "mt_var", 1 );
+    pub_mt_ = n_param_.advertise<marker_msgs::MarkerWithCovarianceArray> ( "mt", 1 );
+    n_param_.param<std::string> ( "frame_id_map", mt_.header.frame_id, "map" );
+    mt_.header.seq = 0;
 
     /// start parameter server
     reconfigureFncSLAM_ = boost::bind ( &SLAMNode::callbackConfigSLAM, this,  _1, _2 );
@@ -140,80 +138,52 @@ void SLAMNode::publish () {
 
     assert ( yt_.size() > 0 && C_Yt_.rows == 3*yt_.size() && C_Yt_.cols == 3*yt_.size() );
 
-    // publish estimated robot pose
+    // publish estimated robot pose and its variance
     xt_.header.stamp = ros::Time::fromBoost ( slam_technique_->time_last_update() );
     xt_.header.seq++;
-    xt_.pose.position.x = yt_[0].x();
-    xt_.pose.position.y = yt_[0].y();
-    xt_.pose.position.z = 0;
-    xt_.pose.orientation = tf::createQuaternionMsgFromYaw ( yt_[0].theta() );
+
+    xt_.marker.marker.pose.position.x = yt_[0].x();
+    xt_.marker.marker.pose.position.y = yt_[0].y();
+    xt_.marker.marker.pose.position.z = 0;
+    xt_.marker.marker.pose.orientation = tf::createQuaternionMsgFromYaw ( yt_[0].theta() );
+
+    cv::Matx<double, 3, 3> C_X2 = cv::Mat_<double> ( C_Yt_, cv::Range ( 0, 3 ), cv::Range ( 0, 3 ) );
+    xt_.marker.covariance[6*0 + 0] = C_X2(0, 0);
+    xt_.marker.covariance[6*0 + 1] = C_X2(0, 1);
+    xt_.marker.covariance[6*0 + 5] = C_X2(0, 2);
+    xt_.marker.covariance[6*1 + 0] = C_X2(1, 0);
+    xt_.marker.covariance[6*1 + 1] = C_X2(1, 1);
+    xt_.marker.covariance[6*1 + 5] = C_X2(1, 2);
+    xt_.marker.covariance[6*5 + 0] = C_X2(2, 0);
+    xt_.marker.covariance[6*5 + 1] = C_X2(2, 1);
+    xt_.marker.covariance[6*5 + 5] = C_X2(2, 2);
+
     pub_xt_.publish ( xt_ );
 
-    // calculate eigenvalues and eigenvectors for variance representation
-    cv::Matx<double, 2, 2> C_X = cv::Mat_<double> ( C_Yt_, cv::Range ( 0, 2 ), cv::Range ( 0, 2 ) );
-    cv::Mat_<double> eigval, eigvec;
-    cv::eigen ( C_X, eigval, eigvec );
-    double alpha = atan2 ( eigvec[0][1], eigvec[0][0] );
-
-    // publish variance of estimated robot pose
-    xt_var_.header.stamp = ros::Time::fromBoost ( slam_technique_->time_last_update() );
-    xt_var_.header.seq++;
-    xt_var_.ns = n_param_.getNamespace();
-    xt_var_.id = 0;
-    xt_var_.type = visualization_msgs::Marker::SPHERE;
-    xt_var_.action = visualization_msgs::Marker::MODIFY;
-    xt_var_.pose.position.x = yt_[0].x();
-    xt_var_.pose.position.y = yt_[0].y();
-    xt_var_.pose.position.z = 0.0;
-    xt_var_.pose.orientation = tf::createQuaternionMsgFromYaw ( alpha );
-    xt_var_.scale.x = 2*sqrt ( eigval[0][0] );
-    xt_var_.scale.y = 2*sqrt ( eigval[1][0] );
-    xt_var_.scale.z = 0.1;
-    xt_var_.color.r = 1.0;
-    xt_var_.color.g = 1.0;
-    xt_var_.color.b = 0.0;
-    xt_var_.color.a = 1.0;
-    xt_var_.lifetime = ros::Duration ( ros::Rate ( 5 ) );
-    pub_xt_var_.publish ( xt_var_ );
-
-    mt_.poses.resize ( yt_.size() - 1 );
+    // publish estimated landmark poses and their variance
     mt_.header.stamp = ros::Time::fromBoost ( slam_technique_->time_last_update() );
-    n_param_.param<std::string> ( "frame_id_map", mt_.header.frame_id, "map" );
-    mt_var_.markers.resize ( yt_.size() - 1 );
-    for ( size_t i = 0; i < mt_.poses.size(); i++ ) {
-        // publish estimated landmark poses
-        mt_.poses[i].position.x = yt_[i+1].x();
-        mt_.poses[i].position.y = yt_[i+1].y();
-        mt_.poses[i].position.z = 0;
-        mt_.poses[i].orientation = tf::createQuaternionMsgFromYaw ( yt_[i+1].theta() );
+    mt_.header.seq++;
 
-        // calculate eigenvalues and eigenvectors for variance representation
-        cv::Matx<double, 2, 2> C_Mi = cv::Mat_<double> ( C_Yt_, cv::Range ( 3* ( i+1 ), 3* ( i+1 ) + 2 ), cv::Range ( 3* ( i+1 ), 3* ( i+1 ) + 2 ) );
-        cv::eigen ( C_Mi, eigval, eigvec );
-        alpha = atan2 ( eigvec[0][1], eigvec[0][0] );
+    mt_.markers.resize ( yt_.size() - 1 );
+    for ( size_t i = 0; i < mt_.markers.size(); i++ ) {
+        mt_.markers[i].marker.pose.position.x = yt_[i+1].x();
+        mt_.markers[i].marker.pose.position.y = yt_[i+1].y();
+        mt_.markers[i].marker.pose.position.z = 0;
+        mt_.markers[i].marker.pose.orientation = tf::createQuaternionMsgFromYaw ( yt_[i+1].theta() );
 
-        // publish variance of landmark poses
-        mt_var_.markers[i].header.stamp = ros::Time::fromBoost ( slam_technique_->time_last_update() );
-        n_param_.param<std::string> ( "frame_id_map", mt_var_.markers[i].header.frame_id, "map" );
-        mt_var_.markers[i].ns = n_param_.getNamespace();
-        mt_var_.markers[i].id = i+1;
-        mt_var_.markers[i].type = visualization_msgs::Marker::SPHERE;
-        mt_var_.markers[i].action = visualization_msgs::Marker::ADD;
-        mt_var_.markers[i].pose.position.x = yt_[i+1].x();
-        mt_var_.markers[i].pose.position.y = yt_[i+1].y();
-        mt_var_.markers[i].pose.position.z = 0.0;
-        mt_var_.markers[i].pose.orientation = tf::createQuaternionMsgFromYaw ( alpha );
-        mt_var_.markers[i].scale.x = 2*sqrt ( eigval[0][0] );
-        mt_var_.markers[i].scale.y = 2*sqrt ( eigval[1][0] );
-        mt_var_.markers[i].scale.z = 0.1;
-        mt_var_.markers[i].color.r = 0.0;
-        mt_var_.markers[i].color.g = 0.0;
-        mt_var_.markers[i].color.b = 1.0;
-        mt_var_.markers[i].color.a = 1.0;
-        mt_var_.markers[i].lifetime = ros::Duration ( ros::Rate ( 5 ) );
+        cv::Matx<double, 3, 3> C_Mi2 = cv::Mat_<double> ( C_Yt_, cv::Range ( 3* ( i+1 ), 3* ( i+1 ) + 3 ), cv::Range ( 3* ( i+1 ), 3* ( i+1 ) + 3 ) );
+        mt_.markers[i].covariance[6*0 + 0] = C_Mi2(0, 0);
+        mt_.markers[i].covariance[6*0 + 1] = C_Mi2(0, 1);
+        mt_.markers[i].covariance[6*0 + 5] = C_Mi2(0, 2);
+        mt_.markers[i].covariance[6*1 + 0] = C_Mi2(1, 0);
+        mt_.markers[i].covariance[6*1 + 1] = C_Mi2(1, 1);
+        mt_.markers[i].covariance[6*1 + 5] = C_Mi2(1, 2);
+        mt_.markers[i].covariance[6*5 + 0] = C_Mi2(2, 0);
+        mt_.markers[i].covariance[6*5 + 1] = C_Mi2(2, 1);
+        mt_.markers[i].covariance[6*5 + 5] = C_Mi2(2, 2);
     }
+
     pub_mt_.publish ( mt_ );
-    pub_mt_var_.publish ( mt_var_ );
 }
 
 /**
