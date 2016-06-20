@@ -1,0 +1,134 @@
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [1]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [2.9886982240436017, 1.9904961469844284, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, 0.6426493649686186, 0.7661604229568578]
+  - !!python/tuple [6.981534371318031e-05, 4.812515968832229e-05, 0.0, 0.0, 0.0, 1.1073427895020044e-07,
+    4.812515968832229e-05, 3.7000260488096335e-05, 0.0, 0.0, 0.0, 8.905907326883598e-08,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 1.1073427895020044e-07, 8.905907326883598e-08, 0.0, 0.0, 0.0, 2.8826210244418113e-07]
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [2]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [5.997399180890689, 4.986121693188663, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, 0.17365228344377032, 0.9848070290441495]
+  - !!python/tuple [0.0001790332566421584, 6.81368735285713e-05, 0.0, 0.0, 0.0, -4.414844004788781e-06,
+    6.81368735285713e-05, 0.00012289844261283625, 0.0, 0.0, 0.0, 3.4946618637160245e-06,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, -4.414844004788781e-06, 3.4946618637160245e-06, 0.0, 0.0, 0.0, 2.3151081882828282e-06]
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [3]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [3.0049087282622433, 8.007419224256525, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, 0.17347035784490364, 0.9848390908920914]
+  - !!python/tuple [0.00015654638882481382, 5.5982220726095584e-05, 0.0, 0.0, 0.0,
+    -7.747106601483338e-06, 5.5982220726095584e-05, 0.00023917425292895587, 0.0, 0.0,
+    0.0, -1.7452098697870869e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -7.747106601483338e-06, -1.7452098697870869e-06,
+    0.0, 0.0, 0.0, 2.3037461095328205e-06]
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [4]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [0.017907680562552115, 11.005165937870736, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, -0.0001297641647104856, 0.9999999915806308]
+  - !!python/tuple [0.00029168158249217165, 0.00012477678871995767, 0.0, 0.0, 0.0,
+    -1.4236246090259677e-05, 0.00012477678871995767, 0.0003750444121181493, 0.0, 0.0,
+    0.0, -1.1155794567864975e-05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.4236246090259677e-05, -1.1155794567864975e-05,
+    0.0, 0.0, 0.0, 3.153658797413131e-06]
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [5]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [-2.9971894901412934, 7.987479835491464, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, -0.0009035770049393943, 0.9999995917742147]
+  - !!python/tuple [0.00025448678785219364, 1.231070292296427e-05, 0.0, 0.0, 0.0,
+    -5.059524751698633e-06, 1.231070292296427e-05, 0.00021961541120850704, 0.0, 0.0,
+    0.0, -4.879484540878154e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.059524751698633e-06, -4.879484540878154e-06,
+    0.0, 0.0, 0.0, 1.7939469172628709e-06]
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [6]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [-3.004839539209247, 1.996400623097366, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, -2.1965772171426837e-05, 0.9999999997587524]
+  - !!python/tuple [0.0002453983563362438, 4.4458102307493905e-05, 0.0, 0.0, 0.0,
+    2.0389442460267983e-06, 4.4458102307493905e-05, 6.973888764626431e-05, 0.0, 0.0,
+    0.0, -4.351030354205512e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0389442460267983e-06, -4.351030354205512e-06,
+    0.0, 0.0, 0.0, 1.3579127446872861e-06]
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [7]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [0.0012598470817638359, -0.9931578439919095, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, 9.847508153853666e-05, 0.9999999951513291]
+  - !!python/tuple [0.0003791372781193171, -6.573598408119424e-05, 0.0, 0.0, 0.0,
+    5.223240490424848e-06, -6.573598408119424e-05, 0.0002036937062124819, 0.0, 0.0,
+    0.0, -3.333125464963732e-07, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.223240490424848e-06, -3.333125464963732e-07,
+    0.0, 0.0, 0.0, 2.9295906973701897e-06]
+- !!python/object/new:marker_msgs.msg._MarkerWithCovariance.MarkerWithCovariance
+  state:
+  - !!python/object/new:marker_msgs.msg._Marker.Marker
+    state:
+    - !!python/tuple [8]
+    - !!python/tuple [1.0]
+    - !!python/object/new:geometry_msgs.msg._Pose.Pose
+      state:
+      - !!python/object/new:geometry_msgs.msg._Point.Point
+        state: [-5.984342277120692, 5.032975914578822, 0.0]
+      - !!python/object/new:geometry_msgs.msg._Quaternion.Quaternion
+        state: [0.0, 0.0, 0.25791806645897214, 0.9661667925332899]
+  - !!python/tuple [0.00029935959654821503, 6.947711754821399e-05, 0.0, 0.0, 0.0,
+    -2.2108977947802547e-06, 6.947711754821399e-05, 0.00019641988294624043, 0.0, 0.0,
+    0.0, -7.607914572210809e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2.2108977947802547e-06, -7.607914572210809e-06,
+    0.0, 0.0, 0.0, 2.023832680933735e-06]

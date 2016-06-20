@@ -89,7 +89,7 @@ if __name__ == '__main__':
     # initialize ros node
     rospy.init_node('tuw_record', anonymous=True)
 
-    # create tuw_tools object
+    # create tuw_record object
     record = tuw_record()
 
     # keep python from exiting until this node is stopped

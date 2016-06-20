@@ -157,6 +157,11 @@ void SLAMNode::publish () {
 
     mt_.markers.resize ( yt_.size() - 1 );
     for ( size_t i = 0; i < mt_.markers.size(); i++ ) {
+        mt_.markers[i].marker.ids.resize(1);
+        mt_.markers[i].marker.ids_confidence.resize(1);
+        mt_.markers[i].marker.ids[0] = i + 1;
+        mt_.markers[i].marker.ids_confidence[0] = 1.0;
+
         mt_.markers[i].marker.pose.position.x = yt_[i+1].x();
         mt_.markers[i].marker.pose.position.y = yt_[i+1].y();
         mt_.markers[i].marker.pose.position.z = 0;
