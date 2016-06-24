@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tuw_geometry
   dynamic_reconfigure 
+  marker_msgs
 )
 
 ## System dependencies are found with CMake's conventions
