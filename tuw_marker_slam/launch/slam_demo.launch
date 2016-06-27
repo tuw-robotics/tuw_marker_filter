@@ -1,0 +1,46 @@
+<launch>
+  <!-- Parameters -->
+  <arg name="world" default="fiducial" />
+  <arg name="mode" default="0" />
+  <arg name="beta_1" default="1.11840023647110e-03" />
+  <arg name="beta_2" default="1.08841788897499e-02" />
+  <arg name="beta_3" default="4.49500672685259e-07" />
+  <arg name="beta_4" default="7.03448116182080e-05" />
+  <arg name="beta_5" default="2.88386534626639e-06" />
+  <arg name="beta_6" default="2.46471128604309e-05" />
+  <arg name="plot_data" default="false" />
+
+  <!-- Remapping -->
+  <arg name="marker_clear" default="base_marker_detection" />
+  <arg name="marker_noise" default="marker_noise" />
+  <arg name="cmd" default="cmd_vel" />
+
+  <node name="stage_ros" pkg="stage_ros" type="stageros" args="$(find stage_ros)/world/$(arg world).world"/>
+
+  <include file="$(find tuw_marker_noise)/launch/noise.launch">
+      <arg name="beta_1" default="$(arg beta_1)" />
+      <arg name="beta_2" default="$(arg beta_2)" />
+      <arg name="beta_3" default="$(arg beta_3)" />
+      <arg name="beta_4" default="$(arg beta_4)" />
+      <arg name="beta_5" default="$(arg beta_5)" />
+      <arg name="beta_6" default="$(arg beta_6)" />
+      <arg name="plot_data" default="$(arg plot_data)" />
+      <arg name="marker" default="$(arg marker_clear)" />
+  </include>
+
+  <include file="$(find tuw_marker_slam)/launch/slam.launch">
+      <arg name="mode" default="$(arg mode)" />
+      <arg name="beta_1" default="$(arg beta_1)" />
+      <arg name="beta_2" default="$(arg beta_2)" />
+      <arg name="beta_3" default="$(arg beta_3)" />
+      <arg name="beta_4" default="$(arg beta_4)" />
+      <arg name="beta_5" default="$(arg beta_5)" />
+      <arg name="beta_6" default="$(arg beta_6)" />
+      <arg name="cmd" default="$(arg cmd)" />
+      <arg name="marker" default="$(arg marker_noise)" />
+  </include>
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tuw_marker_slam)/rviz/config.rviz"/>
+</launch>

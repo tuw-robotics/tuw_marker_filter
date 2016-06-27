@@ -6,7 +6,7 @@
   <!-- Remapping -->
   <arg name="markers" default="markers" />
 
-  <node pkg="tuw_marker_noise" type="tuw_record.py" name="tuw_marker_noise">
+  <node pkg="tuw_marker_noise" type="tuw_record.py" name="tuw_marker_record">
       <param name="input" value="$(arg input)" />
       <param name="output_dir" value="$(arg output_dir)" />
       <remap from="markers" to="$(arg markers)" />

@@ -34,9 +34,10 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
     : SLAM (),
       n_ ( n ),
       n_param_ ( "~" ) {
-    // read in common parameters
     int mode;
-    n_param_.getParam ( "mode", mode );
+
+    // read in common parameters
+    n_param_.param<int> ( "mode", mode, 0 );
     n_param_.param<std::string> ( "frame_id_map", frame_id_map_, "map" );
     n_param_.param<std::string> ( "frame_id_odom", frame_id_odom_, "odom" );
     n_param_.param<std::string> ( "frame_id_base", frame_id_base_, "base_link" );
