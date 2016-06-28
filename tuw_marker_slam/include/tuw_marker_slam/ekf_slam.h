@@ -84,6 +84,10 @@ private:
      **/
     void measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataPtr &corr );
     /**
+     * TODO
+     **/
+    cv::Matx<double, 3, 3> measurement_noise ( const MeasurementMarker::Marker zi );
+    /**
      * correcting robot and landmarks poses
      * @param zt measurement at time t
      **/
