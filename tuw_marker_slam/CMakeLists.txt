@@ -162,6 +162,7 @@ add_dependencies(tuw_marker_slam_node
 target_link_libraries(tuw_marker_slam_node
   tuw_marker_slam
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )
 
 #############
