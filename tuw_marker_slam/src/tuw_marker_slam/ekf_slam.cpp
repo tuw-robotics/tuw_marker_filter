@@ -33,16 +33,17 @@ void EKFSLAM::init() {
 
 void EKFSLAM::cycle ( std::vector<Pose2D> &yt, cv::Mat_<double> &C_Yt, const Command &ut, const MeasurementConstPtr &zt ) {
     if ( reset_ ) init();
+
+    // invariance check
+    assert ( y.rows % 3 == 0 && y.cols == 1 );
+    assert ( x.rows == 3 && x.cols == 1 );
+    assert ( C_Y.rows == C_Y.cols && C_Y.rows == y.rows );
+    assert ( C_X.rows == C_X.cols && C_X.rows == x.rows );
+
+    prediction ( ut );
     if ( zt->getType() == tuw::Measurement::Type::MARKER && updateTimestamp ( zt->stamp() ) ) {
         MeasurementMarkerConstPtr z = std::static_pointer_cast<MeasurementMarker const> ( zt );
 
-        // invariance check
-        assert ( y.rows % 3 == 0 && y.cols == 1 );
-        assert ( x.rows == 3 && x.cols == 1 );
-        assert ( C_Y.rows == C_Y.cols && C_Y.rows == y.rows );
-        assert ( C_X.rows == C_X.cols && C_X.rows == x.rows );
-
-        prediction ( ut );
         data_association ( z );
         update();
         integration ( z );
@@ -387,11 +388,7 @@ void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataP
                                         0, 0, 1 );
 
     // measurement noise
-    double l = zt->operator[] ( i ).length;
-    double a = zt->operator[] ( i ).angle;
-    corr->Q = cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
-                                      0, beta_3_*l*l + beta_4_*a*a, 0,
-                                      0, 0, beta_5_*l*l + beta_6_*a*a );
+    corr->Q = measurement_noise( zt->operator[]( i ) );
 
     // S_i = H_i*C_Y*H_i^T + Q
     cv::Matx<double, 3, 3> C_X_ = cv::Mat_<double> ( C_Y, cv::Range ( 0, 3 ), cv::Range ( 0, 3 ) );
@@ -401,6 +398,15 @@ void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataP
     cv::Matx<double, 3, 3> tmp = corr->dx*C_XM*corr->dm.t();
     cv::Matx<double, 3, 3> S = corr->dx*C_X_*corr->dx.t() + tmp + tmp.t() + corr->dm*C_M*corr->dm.t() + corr->Q;
     corr->S_inv = S.inv();
+}
+
+cv::Matx<double, 3, 3> EKFSLAM::measurement_noise ( MeasurementMarker::Marker zi ) {
+    double l = zi.length;
+    double a = zi.angle;
+
+    return cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
+                                   0, beta_3_*l*l + beta_4_*a*a, 0,
+                                   0, 0, beta_5_*l*l + beta_6_*a*a );
 }
 
 void EKFSLAM::update() {
@@ -528,11 +534,7 @@ void EKFSLAM::integration ( const MeasurementMarkerConstPtr &zt ) {
         assert ( zt->operator[] ( i ).ids.size() > 0 );
 
         // measurement noise
-        double l = zt->operator[] ( i ).length;
-        double a = zt->operator[] ( i ).angle;
-        cv::Matx<double, 3,3> Q = cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
-                                  0, beta_3_*l*l + beta_4_*a*a, 0,
-                                  0, 0, beta_5_*l*l + beta_6_*a*a );
+        cv::Matx<double, 3,3> Q = measurement_noise( zt->operator[]( i ) );
 
         // number landmarks found in ascending order
         int j = y.rows/3;
