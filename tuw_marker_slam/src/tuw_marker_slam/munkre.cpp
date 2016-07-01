@@ -286,7 +286,7 @@ void Munkre::step_7 (const cv::Mat_<Zero> M, const bool transpose, std::vector<s
             bool col_finish = false;
             if (M[r][c] == STAR) {
                 assert ( !col_finish );
-                
+
                 // restore original arrangement 
                 if (transpose)
                     result[i] = std::pair<size_t, size_t> (c, r);

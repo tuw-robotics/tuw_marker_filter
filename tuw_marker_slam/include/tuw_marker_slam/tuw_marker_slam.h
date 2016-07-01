@@ -3,12 +3,13 @@
 
 #include <tuw_geometry/tuw_geometry.h>
 #include <opencv2/core/core.hpp>
+
 #include "tuw_marker_slam/slam_technique.h"
 #include "tuw_marker_slam/SLAMConfig.h"
 
 namespace tuw {
 /**
- * Class for SLAM independent to the used technique
+ * Class for SLAM (independent of used technique)
  */
 class SLAM {
 public:
@@ -16,19 +17,16 @@ public:
 
 protected:
     std::vector<Pose2D> yt_;                                /// combined state yt = (xt, mt_1, ..., mt_n) with xt = (x, y, alpha), mt_i = (x_i, y_i, alpha_i)
-    cv::Mat_<double> C_Yt_;                                 /// combined covariance matrix
-    Command ut_;                                            /// motion commands v, w
-    MeasurementPtr zt_;                                     /// observations
+    cv::Mat_<double> C_Yt_;                                 /// combined covariance matrix of combined state
+    Command ut_;                                            /// motion commands v, w at time t
+    MeasurementPtr zt_;                                     /// measurements at time t
 
-    unsigned long loop_count_;                              /// counts the filter cycles
-    SLAMTechniquePtr slam_technique_;                       /// filter used to estimate the vehicles pose
+    unsigned long loop_count_;                              /// counter for the triggered cycles
+    SLAMTechniquePtr slam_technique_;                       /// technique used to estimate landmark map and the vehicles pose in it
 
-    tuw_marker_slam::SLAMConfig config_;                           /// global parameters
+    tuw_marker_slam::SLAMConfig config_;                    /// global parameters
 
-    /**
-     * starts the localization and mapping
-     */
-    void cycle ();
+    void cycle ();                                          /// triggers the SLAM cycle
 };
 };
 

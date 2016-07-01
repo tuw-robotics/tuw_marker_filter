@@ -12,7 +12,11 @@ namespace tuw {
 class Munkre {
 public:
     /**
-     * TODO
+     * Finds a minimum assignment of rows and columns in the given costmatrix
+     *
+     * @param costmatrix initial position for the minimum assignment problem (remains unaffected)
+     * @return Returns a vector of paired indices (i, j) denoting row i corresponds to column j
+     *         in a minimum assignment of the original costmatrix
      */
     static std::vector<std::pair<size_t, size_t>> find_minimum_assignment ( const cv::Mat_<double> costmatrix );
 

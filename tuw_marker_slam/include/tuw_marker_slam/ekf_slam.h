@@ -2,7 +2,7 @@
 #define EKF_SLAM_H
 
 #include "tuw_marker_slam/slam_technique.h"
-#include <tuw_marker_slam/measurement_marker.h>
+#include "tuw_marker_slam/measurement_marker.h"
 #include "tuw_marker_slam/EKFSLAMConfig.h"
 
 namespace tuw {
@@ -18,32 +18,52 @@ class EKFSLAM : public SLAMTechnique {
 public:
     /**
     * Constructor
+    *
+    * @param beta_1 parameter for the implemented measurement noise model
+    * @param beta_2 parameter for the implemented measurement noise model
+    * @param beta_3 parameter for the implemented measurement noise model
+    * @param beta_4 parameter for the implemented measurement noise model
+    * @param beta_5 parameter for the implemented measurement noise model
+    * @param beta_6 parameter for the implemented measurement noise model
     **/
     EKFSLAM( const double beta_1, const double beta_2, const double beta_3, const double beta_4, const double beta_5, const double beta_6 );
+
     /**
-     * starts the SLAM cycle and predicts the robot and landmark poses at the timestamp encoded into the measurement
-     * @param yt TODO
-     * @param C_Yt TODO
+     * starts the SLAM cycle and predicts the robot and landmark poses at the timestamp
+     * encoded into the measurement
+     *
+     * @param yt implicit return of the combined state yt = (xt, mt_1, ..., mt_n) with xt = (x, y, alpha), mt_i = (x_i, y_i, alpha_i)
+     * @param C_Yt implicit return of the combined covariance matrix of combined state
      * @param ut current control command
      * @param zt measurment with a timestamp
      **/
     void cycle ( std::vector<Pose2D> &yt, cv::Mat_<double> &C_Yt, const Command &ut, const MeasurementConstPtr &zt );
+
     /**
      * virtual function to set the config parameters
+     *
      * @param config of type tuw_marker_slam::EKFSLAMConfig*
      **/
     void setConfig ( const void *config );
 private:
+    /**
+     * Different supported data association modes
+     **/
     enum DataAssociationMode {
         ID = 0,
         NNSF_LOCAL = 1,
         NNSF_GLOBAL = 2,
     };
+
+    /**
+     * Different supported update modes
+     **/
     enum UpdateMode {
         None = 0,
         Single = 1,
         Combined = 2,
     };
+
     /**
     * struct to represent correspondeces and their data
     **/
@@ -53,65 +73,97 @@ private:
         cv::Vec<double, 3> v;                   /// difference of obtained and predicted measurement
         cv::Matx<double, 3, 3> dx;              /// x deviation in H_ij = (dx 0 .. 0 dm 0 .. 0)
         cv::Matx<double, 3, 3> dm;              /// m deviation in H_ij = (dx 0 .. 0 dm 0 .. 0)
-        cv::Matx<double, 3, 3> S_inv;           /// inverse ??? matrix (TODO)
+        cv::Matx<double, 3, 3> S_inv;           /// inverted matrix used amongst other for the mahalanobis distance
     };
     typedef std::shared_ptr< CorrData > CorrDataPtr;
     typedef std::shared_ptr< CorrData const > CorrDataConstPtr;
+
     /**
      * initializes the filter
      **/
     void init();
+
     /**
      * predicting robots pose
      * @param ut command at time t
      **/
     void prediction ( const Command &ut );
+
     /**
      * data association to find matching between measurements and landmarks
-     * @param zt measurement at time t
+     *
+     * @param zt measurements at time t
      **/
     void data_association ( const MeasurementMarkerConstPtr &zt );
+
     /**
-     * TODO
+     * performs Nearest Neighbor Standard Filter (NNSF) by associating each measurement to
+     * an up then unassociated landmark with minimum Mahalanobis distance
+     * 
+     * Note: does not avoid local optimums, i.e. to a single landmark multiple measurements
+     * could be assigned. In this case both associations are deprecated (conservative approach)
+     *
+     * @param zt measurements at time t
+     * @param gamma gamma is a threshold such that 100*(1-alpha)% of true measurements are rejected
+     *              (with alpha from the config)
      **/
     void NNSF_local ( const MeasurementMarkerConstPtr &zt, const double gamma );
+
     /**
-     * TODO
+     * performs Nearest Neighbor Standard Filter (NNSF) by finding a minimum Mahalanobis distance
+     * assignment between measurements and unassociated landmarks
+     * 
+     * @param zt measurements at time t
+     * @param gamma gamma is a threshold such that 100*(1-alpha)% of true measurements are rejected
+     *              (with alpha from the config)
      **/
     void NNSF_global ( const MeasurementMarkerConstPtr &zt, const double gamma );
+
     /**
-     * TODO
+     * compares observed and predicted measurement
+     * 
+     * @param zt measurements at time t
+     * @param corr contains the indices of the measurement and associated landmark, also used for implicit return
      **/
     void measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataPtr &corr );
+
     /**
-     * TODO
+     * implements the measurement noise model
+     * 
+     * @param zi single measured marker
+     * @return covariance matrix describing the measurement noise
      **/
     cv::Matx<double, 3, 3> measurement_noise ( const MeasurementMarker::Marker zi );
+
     /**
      * correcting robot and landmarks poses
-     * @param zt measurement at time t
+     *
+     * @param zt measurements at time t
      **/
     void update();
+
     /**
-     * TODO
+     * iterates over each single observation and corrects the robot and landmarks poses
      **/
     void update_single();
+
     /**
-     * TODO
+     * corrects the robot and landmarks poses by using all observations combined in one step
      **/
     void update_combined();
+
     /**
      * integrating new landmarks
      **/
     void integration ( const MeasurementMarkerConstPtr &zt );
 
     tuw_marker_slam::EKFSLAMConfig config_;     /// parameters
-    const double beta_1_;
-    const double beta_2_;
-    const double beta_3_;
-    const double beta_4_;
-    const double beta_5_;
-    const double beta_6_;
+    const double beta_1_;                       /// parameter for the implemented measurement noise model
+    const double beta_2_;                       /// parameter for the implemented measurement noise model
+    const double beta_3_;                       /// parameter for the implemented measurement noise model
+    const double beta_4_;                       /// parameter for the implemented measurement noise model
+    const double beta_5_;                       /// parameter for the implemented measurement noise model
+    const double beta_6_;                       /// parameter for the implemented measurement noise model
 
     cv::Mat_<double> y;                         /// mean vector of y = (x m1 m2 ...)
     cv::Mat_<double> x;                         /// mean vector of x
