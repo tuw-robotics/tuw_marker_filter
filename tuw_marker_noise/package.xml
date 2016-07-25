@@ -2,7 +2,9 @@
 <package>
   <name>tuw_marker_noise</name>
   <version>0.0.0</version>
-  <description>The tuw_marker_noise package</description>
+  <description>The tuw_marker_noise package provides nodes
+      for adding artificial noise to MarkerDetection messages from the marker_msgs package and
+      for recording MarkerDetection messages in order to obtain a measurement noise model.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->

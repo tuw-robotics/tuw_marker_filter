@@ -2,7 +2,8 @@
 <package>
   <name>tuw_marker_slam</name>
   <version>0.0.0</version>
-  <description>The tuw_marker_slam package</description>
+  <description>The tuw_marker_slam package provides a framework for feature based SLAM implementations in ROS.
+      Meanwhile a variant of EKF-SLAM is implemented.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
