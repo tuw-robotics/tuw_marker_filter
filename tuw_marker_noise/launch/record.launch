@@ -2,6 +2,7 @@
   <!-- Parameters -->
   <arg name="input" default="$(find tuw_marker_noise)/input/visual_marker_cave.csv" />
   <arg name="output_dir" default="$(find tuw_marker_noise)/output" />
+  <arg name="frame_id_odom" default="odom" />
 
   <!-- Remapping -->
   <arg name="markers" default="markers" />
@@ -9,6 +10,7 @@
   <node pkg="tuw_marker_noise" type="tuw_record.py" name="tuw_marker_record">
       <param name="input" value="$(arg input)" />
       <param name="output_dir" value="$(arg output_dir)" />
+      <param name="frame_id_odom" value="$(arg frame_id_odom)" />
       <remap from="markers" to="$(arg markers)" />
   </node>
 </launch>

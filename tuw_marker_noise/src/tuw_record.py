@@ -25,6 +25,7 @@ class tuw_record:
         # get and store parameters
         self.input = rospy.get_param('~input')
         self.output_dir = rospy.get_param('~output_dir')
+        self.odom = rospy.get_param('~frame_id_odom', 'odom')
         if self.output_dir[-1:] != '/':
           self.output_dir = self.output_dir + '/'
         self.output = self.output_dir + 'record.csv'
@@ -50,7 +51,7 @@ class tuw_record:
     def cb_marker(self, msg):
         try:
             # prepare transformation matrix
-            stampedTransform = self.tf2_buffer.lookup_transform(msg.header.frame_id, rospy.resolve_name('odom')[1:], rospy.Time(), rospy.Duration(1.0))
+            stampedTransform = self.tf2_buffer.lookup_transform(msg.header.frame_id, rospy.resolve_name(self.odom)[1:], rospy.Time(), rospy.Duration(1.0))
             T = tf.TransformerROS().fromTranslationRotation(get_vector_translation(stampedTransform.transform.translation), get_vector_rotation(stampedTransform.transform.rotation))
 
             # prepare output file
