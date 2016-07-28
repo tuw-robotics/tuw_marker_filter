@@ -3,7 +3,7 @@
   <arg name="mapfile" default="fiducial.yaml" />
 
   <!-- Remapping -->
-  <arg name="map" default="/slam/mt" />
+  <arg name="map" default="/tuw_marker_slam/mt" />
 
   <node pkg="tuw_marker_server" type="tuw_marker_saver.py" name="tuw_marker_saver">
       <param name="mapfile" value="$(find tuw_marker_server)/map/$(arg mapfile)" />

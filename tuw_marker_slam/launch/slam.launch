@@ -1,6 +1,10 @@
 <launch>
   <!-- Parameters -->
   <arg name="mode" default="0" />
+  <arg name="xzplane" default="false" />
+  <arg name="frame_id_map" default="map" />
+  <arg name="frame_id_odom" default="odom" />
+  <arg name="frame_id_base" default="base_link" />
   <arg name="beta_1" default="1.11840023647110e-03" />
   <arg name="beta_2" default="1.08841788897499e-02" />
   <arg name="beta_3" default="4.49500672685259e-07" />
@@ -14,6 +18,10 @@
 
   <node pkg="tuw_marker_slam" type="tuw_marker_slam_node" name="tuw_marker_slam" output="screen">
       <param name="mode" value="$(arg mode)" />
+      <param name="xzplane" value="$(arg xzplane)" />
+      <param name="frame_id_map" value="$(arg frame_id_map)" />
+      <param name="frame_id_odom" value="$(arg frame_id_odom)" />
+      <param name="frame_id_base" value="$(arg frame_id_base)" />
       <param name="beta_1" value="$(arg beta_1)" />
       <param name="beta_2" value="$(arg beta_2)" />
       <param name="beta_3" value="$(arg beta_3)" />

@@ -36,6 +36,7 @@ private:
 
     tf::TransformBroadcaster tf_broadcaster_;                                                                   /// broadcasts transformation messages
     std::shared_ptr<tf::TransformListener> tf_listener_;                                                        /// listener to receive transformation messages
+    bool xzplane_;                                                                                              /// measurements are in x-z-plane (gazebo) instead of x-y-plane (stage)
     std::string frame_id_map_;                                                                                  /// frame id of map (for transformations)
     std::string frame_id_odom_;                                                                                 /// frame id of odom (for transformations)
     std::string frame_id_base_;                                                                                 /// frame id of base (for transformations)

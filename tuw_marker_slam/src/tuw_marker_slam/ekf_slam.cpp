@@ -366,6 +366,7 @@ void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataP
     corr->v[0] = z[0] - z_[0];
     corr->v[1] = angle_difference ( z[1], z_[1] );
     corr->v[2] = angle_difference ( z[2], z_[2] );
+    corr->v[2] = 0;
 
     // pre-calculate needed data
     assert ( q > 0 );

@@ -38,6 +38,7 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
 
     // read in common parameters
     n_param_.param<int> ( "mode", mode, 0 );
+    n_param_.param<bool> ( "xzplane", xzplane_, false );
     n_param_.param<std::string> ( "frame_id_map", frame_id_map_, "map" );
     n_param_.param<std::string> ( "frame_id_odom", frame_id_odom_, "odom" );
     n_param_.param<std::string> ( "frame_id_base", frame_id_base_, "base_link" );
@@ -121,12 +122,17 @@ void SLAMNode::publish () {
     tf::StampedTransform map_to_odom;
 
     // subtracting base to odom from map to base (cp. http://wiki.ros.org/amcl)
-    base_to_map = tf::Transform ( tf::createQuaternionFromYaw ( yt_[0].theta() ), tf::Point ( yt_[0].x(), yt_[0].y(), 0 ) );
-    map_to_base = tf::Stamped<tf::Pose> ( base_to_map.inverse(), ros::Time::fromBoost ( slam_technique_->time_last_update() ), frame_id_base_ );
-    tf_listener_->transformPose ( frame_id_odom_, map_to_base, odom_to_map );
-    map_to_odom = tf::StampedTransform ( odom_to_map.inverse(), odom_to_map.stamp_, frame_id_map_, frame_id_odom_ );
+    try {
+        base_to_map = tf::Transform ( tf::createQuaternionFromYaw ( yt_[0].theta() ), tf::Point ( yt_[0].x(), yt_[0].y(), 0 ) );
+        map_to_base = tf::Stamped<tf::Pose> ( base_to_map.inverse(), ros::Time::fromBoost ( slam_technique_->time_last_update() ), frame_id_base_ );
+        tf_listener_->transformPose ( frame_id_odom_, map_to_base, odom_to_map );
+        map_to_odom = tf::StampedTransform ( odom_to_map.inverse(), odom_to_map.stamp_, frame_id_map_, frame_id_odom_ );
 
-    tf_broadcaster_.sendTransform ( map_to_odom );
+        tf_broadcaster_.sendTransform ( map_to_odom );
+    }
+    catch (std::exception &ex) {
+        ROS_ERROR ( "[%s publish] subtracting base-to-odom from map-to-base failed: %s", ros::this_node::getName().c_str(), ex.what() );
+    }
 
     assert ( yt_.size() > 0 && C_Yt_.rows == 3*yt_.size() && C_Yt_.cols == 3*yt_.size() );
 
@@ -225,16 +231,30 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
     zt->resize ( _marker.markers.size() );
 
     for ( size_t i = 0; i < zt->size(); i++ ) {
+        double x, y, z, roll, pitch, yaw, theta;
         tf::Vector3 v;
+        tf::Quaternion q;
+
         tf::pointMsgToTF ( _marker.markers[i].pose.position, v );
-        double orientation = tf::getYaw ( _marker.markers[i].pose.orientation );
+        tf::quaternionMsgToTF(_marker.markers[i].pose.orientation, q);
+        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+
+        if ( xzplane_ ) {   // gazebo
+            x = v.getX();
+            y = v.getZ();
+            theta = pitch;
+        } else {            //stage
+            x = v.getX();
+            y = v.getY();
+            theta = yaw;
+        }
 
         zt->operator[] ( i ).ids = _marker.markers[i].ids;
         zt->operator[] ( i ).ids_confidence = _marker.markers[i].ids_confidence;
-        zt->operator[] ( i ).length = v.length();
-        zt->operator[] ( i ).angle = atan2 ( v.getY(), v.getX() );
-        zt->operator[] ( i ).orientation = orientation;
-        zt->operator[] ( i ).pose = Pose2D ( v.getX(), v.getY(), orientation );
+        zt->operator[] ( i ).length = sqrt( x*x + y*y );
+        zt->operator[] ( i ).angle = atan2 ( y, x );
+        zt->operator[] ( i ).orientation = theta;
+        zt->operator[] ( i ).pose = Pose2D ( x, y, theta );
     }
 }
 
