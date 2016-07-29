@@ -50,5 +50,5 @@
 
   <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tuw_marker_slam)/rviz/config.rviz"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tuw_marker_slam)/rviz/stage.rviz"/>
 </launch>

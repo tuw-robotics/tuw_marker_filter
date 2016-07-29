@@ -366,7 +366,7 @@ void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataP
     corr->v[0] = z[0] - z_[0];
     corr->v[1] = angle_difference ( z[1], z_[1] );
     corr->v[2] = angle_difference ( z[2], z_[2] );
-    corr->v[2] = 0;
+    //corr->v[2] = 0;
 
     // pre-calculate needed data
     assert ( q > 0 );
@@ -405,9 +405,13 @@ cv::Matx<double, 3, 3> EKFSLAM::measurement_noise ( MeasurementMarker::Marker zi
     double l = zi.length;
     double a = zi.angle;
 
-    return cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
+    /*return cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
                                    0, beta_3_*l*l + beta_4_*a*a, 0,
-                                   0, 0, beta_5_*l*l + beta_6_*a*a );
+                                   0, 0, beta_5_*l*l + beta_6_*a*a );*/
+
+    return cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
+                                0, beta_3_*l*l + beta_4_*a*a, 0,
+                                0, 0, M_PI );
 }
 
 void EKFSLAM::update() {

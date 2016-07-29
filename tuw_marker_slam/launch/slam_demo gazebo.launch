@@ -1,0 +1,38 @@
+<launch>
+  <!-- Parameters -->
+  <arg name="mode" default="0" />
+  <arg name="xzplane" default="true" />
+  <arg name="frame_id_map" default="/r1/map" />
+  <arg name="frame_id_odom" default="/r1/odom" />
+  <arg name="frame_id_base" default="/r1/base_link" />
+  <arg name="beta_1" default="1.11840023647110e-03" />
+  <arg name="beta_2" default="1.08841788897499e-02" />
+  <arg name="beta_3" default="4.49500672685259e-07" />
+  <arg name="beta_4" default="7.03448116182080e-05" />
+  <arg name="beta_5" default="2.88386534626639e-06" />
+  <arg name="beta_6" default="2.46471128604309e-05" />
+
+  <!-- Remapping -->
+  <arg name="marker" default="/r1/markers" />
+  <arg name="cmd" default="/r1/cmd_vel" />
+
+  <include file="$(find tuw_marker_slam)/launch/slam.launch">
+      <arg name="mode" default="$(arg mode)" />
+      <param name="xzplane" value="$(arg xzplane)" />
+      <param name="frame_id_map" value="$(arg frame_id_map)" />
+      <param name="frame_id_odom" value="$(arg frame_id_odom)" />
+      <param name="frame_id_base" value="$(arg frame_id_base)" />
+      <arg name="beta_1" default="$(arg beta_1)" />
+      <arg name="beta_2" default="$(arg beta_2)" />
+      <arg name="beta_3" default="$(arg beta_3)" />
+      <arg name="beta_4" default="$(arg beta_4)" />
+      <arg name="beta_5" default="$(arg beta_5)" />
+      <arg name="beta_6" default="$(arg beta_6)" />
+      <arg name="cmd" default="$(arg cmd)" />
+      <arg name="marker" default="$(arg marker)" />
+  </include>
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tuw_marker_slam)/rviz/gazebo.rviz"/>
+</launch>
