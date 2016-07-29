@@ -10,6 +10,9 @@ MeasurementMarker::MeasurementMarker ( const MeasurementMarker& o )
 void MeasurementMarker::resize ( size_t n ) {
     markers_.resize ( n );
 }
+void MeasurementMarker::clear() {
+    markers_.clear();
+}
 double &MeasurementMarker::angle_min() {
     return angle_min_;
 }
@@ -53,5 +56,8 @@ MeasurementMarker::Marker& MeasurementMarker::operator[] ( int i ) {
  **/
 const MeasurementMarker::Marker& MeasurementMarker::operator[] ( int i ) const {
     return markers_[i];
+}
+void MeasurementMarker::push_back ( const MeasurementMarker::Marker m ) {
+    markers_.push_back( m );
 }
 

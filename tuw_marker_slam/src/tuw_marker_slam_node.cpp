@@ -228,10 +228,10 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
     zt->range_max() = _marker.distance_max;
     zt->range_max_id() = _marker.distance_max_id;
     zt->stamp() = _marker.header.stamp.toBoost();
-    zt->resize ( _marker.markers.size() );
+    zt->resize ( 0 );
 
-    for ( size_t i = 0; i < zt->size(); i++ ) {
-        double x, y, z, roll, pitch, yaw, theta;
+    for ( size_t i = 0; i < _marker.markers.size(); i++ ) {
+        double x, y, z, roll, pitch, yaw, length, angle, theta;
         tf::Vector3 v;
         tf::Quaternion q;
 
@@ -249,12 +249,20 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
             theta = yaw;
         }
 
-        zt->operator[] ( i ).ids = _marker.markers[i].ids;
-        zt->operator[] ( i ).ids_confidence = _marker.markers[i].ids_confidence;
-        zt->operator[] ( i ).length = sqrt( x*x + y*y );
-        zt->operator[] ( i ).angle = atan2 ( y, x );
-        zt->operator[] ( i ).orientation = theta;
-        zt->operator[] ( i ).pose = Pose2D ( x, y, theta );
+        length = sqrt( x*x + y*y );
+        angle = atan2 ( y, x );
+
+        if (length < zt->range_min() || length > zt->range_max()) continue;
+
+        MeasurementMarker::Marker zt_i;
+        zt_i.ids = _marker.markers[i].ids;
+        zt_i.ids_confidence = _marker.markers[i].ids_confidence;
+        zt_i.length = length;
+        zt_i.angle = angle;
+        zt_i.orientation = theta;
+        zt_i.pose = Pose2D ( x, y, theta );
+
+        zt->push_back( zt_i );
     }
 }
 

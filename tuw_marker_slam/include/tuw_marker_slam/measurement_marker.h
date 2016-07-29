@@ -44,6 +44,10 @@ public:
      **/
     void resize ( size_t n );
     /**
+     * Clears the vector holding the marker measurements
+     **/
+    void clear();
+    /**
      * returns the min angle measurement
      * @return possible min measurement
      **/
@@ -111,6 +115,10 @@ public:
      * @return a single marker
      **/
     const Marker& operator[] ( int i ) const;
+    /**
+     * @param m marker
+     **/
+    void push_back ( const MeasurementMarker::Marker m );
 private:
     double angle_min_;
     double angle_max_;
