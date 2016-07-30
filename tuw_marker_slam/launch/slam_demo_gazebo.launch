@@ -16,12 +16,16 @@
   <arg name="marker" default="/r1/markers" />
   <arg name="cmd" default="/r1/cmd_vel" />
 
+  <include file="$(find tuw_gazebo_models)/launch/pioneer3dx/pioneer3dx.launch"/>
+  <include file="$(find tuw_gazebo_models)/launch/visual_marker_cave.launch"/>
+  <include file="$(find tuw_artoolkitplus)/launch/single_marker_gazebo.launch"/>
+
   <include file="$(find tuw_marker_slam)/launch/slam.launch">
       <arg name="mode" default="$(arg mode)" />
-      <param name="xzplane" value="$(arg xzplane)" />
-      <param name="frame_id_map" value="$(arg frame_id_map)" />
-      <param name="frame_id_odom" value="$(arg frame_id_odom)" />
-      <param name="frame_id_base" value="$(arg frame_id_base)" />
+      <arg name="xzplane" value="$(arg xzplane)" />
+      <arg name="frame_id_map" value="$(arg frame_id_map)" />
+      <arg name="frame_id_odom" value="$(arg frame_id_odom)" />
+      <arg name="frame_id_base" value="$(arg frame_id_base)" />
       <arg name="beta_1" default="$(arg beta_1)" />
       <arg name="beta_2" default="$(arg beta_2)" />
       <arg name="beta_3" default="$(arg beta_3)" />
