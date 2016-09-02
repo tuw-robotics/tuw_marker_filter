@@ -18,7 +18,7 @@
 
   <include file="$(find tuw_gazebo_models)/launch/pioneer3dx/pioneer3dx.launch"/>
   <include file="$(find tuw_gazebo_models)/launch/visual_marker_cave.launch"/>
-  <include file="$(find tuw_artoolkitplus)/launch/single_marker_gazebo.launch"/>
+  <include file="$(find tuw_aruco)/launch/single_marker_gazebo.launch"/>
 
   <include file="$(find tuw_marker_slam)/launch/slam.launch">
       <arg name="mode" default="$(arg mode)" />

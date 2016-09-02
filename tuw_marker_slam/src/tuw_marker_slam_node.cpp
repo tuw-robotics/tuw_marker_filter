@@ -209,9 +209,11 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
     try {
         tf::StampedTransform transform;
         tf_listener_->lookupTransform ( frame_id_base_, _marker.header.frame_id, ros::Time ( 0 ), transform );
+        double yaw = tf::getYaw(transform.getRotation());
         zt->pose2d() = Pose2D ( transform.getOrigin().getX(),
                                 transform.getOrigin().getY(),
-                                tf::getYaw ( transform.getRotation() ) );
+                                ( xzplane_ ) ? yaw + M_PI/2 : yaw );
+        
     } catch ( tf::TransformException &ex ) {
         ROS_ERROR ( "[%s callbackMarker] %s", ros::this_node::getName().c_str(), ex.what() );
         zt->pose2d() = Pose2D ( 0.225,  0, 0 );
@@ -240,9 +242,9 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
         tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 
         if ( xzplane_ ) {   // gazebo
-            x = v.getX();
-            y = v.getZ();
-            theta = pitch;
+            x = v.getZ();
+            y = -v.getX();
+            theta = angle_difference(M_PI, pitch);
         } else {            //stage
             x = v.getX();
             y = v.getY();
@@ -261,7 +263,6 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
         zt_i.angle = angle;
         zt_i.orientation = theta;
         zt_i.pose = Pose2D ( x, y, theta );
-
         zt->push_back( zt_i );
     }
 }
