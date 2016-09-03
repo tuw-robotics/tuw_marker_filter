@@ -3,25 +3,21 @@
 import os
 import rospy
 import tf
-import tf2_ros
 
 import math
 import numpy
 
 from marker_msgs.msg import MarkerDetection
+from geometry_msgs.msg import PoseStamped
 
-def get_vector_translation(translation):
-    return (translation.x, translation.y, translation.z)
+def get_vector_position(position):
+    return (position.x, position.y, position.z)
 
-def get_vector_rotation(rotation):
-    return (rotation.x, rotation.y, rotation.z, rotation.w)
+def get_vector_orientation(orientation):
+    return (orientation.x, orientation.y, orientation.z, orientation.w)
 
 class tuw_record:
     def __init__(self):
-        # use tf2 instead of tf since support of static transformations
-        self.tf2_buffer = tf2_ros.Buffer()
-        self.tf2_listener = tf2_ros.TransformListener(self.tf2_buffer)
-
         # get and store parameters
         self.input = rospy.get_param('~input')
         self.output_dir = rospy.get_param('~output_dir')
@@ -30,7 +26,8 @@ class tuw_record:
           self.output_dir = self.output_dir + '/'
         self.output = self.output_dir + 'record.csv'
 
-        # subscribe
+        # listen to transformations and subscribe to topics
+        self.tf_listener = tf.TransformListener()
         rospy.Subscriber('markers', MarkerDetection, self.cb_marker)
 
         self.markers = {}
@@ -44,32 +41,36 @@ class tuw_record:
                     raise ValueError('Not a valid line: ' + line)
 
                 # Note: + 0.15 and + math.pi/2 is because of the gazebo link offset
-                trans = (float(tmp[1]) + 0.15, float(tmp[2]), float(tmp[3]) + 0.15)
-                rot = tf.transformations.quaternion_from_euler(float(tmp[4]) + math.pi/2, float(tmp[5]), float(tmp[6]))
-                self.markers[int(tmp[0])] = tf.TransformerROS().fromTranslationRotation(trans, rot)
+                msg = PoseStamped()
+                msg.header.frame_id = rospy.resolve_name(self.odom)[1:]
+                msg.pose.position.x = float(tmp[1]) + 0.15
+                msg.pose.position.y = float(tmp[2])
+                msg.pose.position.z = float(tmp[3]) + 0.15
+                q = tf.transformations.quaternion_from_euler(float(tmp[4]) + math.pi/2, float(tmp[5]), float(tmp[6]))
+                msg.pose.orientation.x = q[0]
+                msg.pose.orientation.y = q[1]
+                msg.pose.orientation.z = q[2]
+                msg.pose.orientation.w = q[3]
+                self.markers[int(tmp[0])] = msg
 
     def cb_marker(self, msg):
         try:
-            # prepare transformation matrix
-            stampedTransform = self.tf2_buffer.lookup_transform(msg.header.frame_id, rospy.resolve_name(self.odom)[1:], rospy.Time(), rospy.Duration(1.0))
-            T = tf.TransformerROS().fromTranslationRotation(get_vector_translation(stampedTransform.transform.translation), get_vector_rotation(stampedTransform.transform.rotation))
-
             # prepare output file
             with open(self.output, 'a+') as f:
                 if os.path.getsize(self.output) == 0:
                     f.write('exp_length;exp_angle;exp_orientation;length;angle;orientation\n')
 
                 for marker in msg.markers:
-                    # calculate prediction
-                    F = numpy.dot(T, self.markers[marker.ids[0]])
+                    # get prediction
+                    predmsg = self.tf_listener.transformPose(msg.header.frame_id, self.markers[marker.ids[0]])
 
                     # get cartesian & sperical representation of prediction translation
-                    (x_, y_, z_) = tf.transformations.translation_from_matrix(F)
+                    (x_, y_, z_) = (predmsg.pose.position.x, predmsg.pose.position.y, predmsg.pose.position.z)
                     l_ = math.sqrt(x_*x_ + z_*z_)
                     a_ = math.atan2(x_, z_)
 
                     # get euler representation of prediction orientation
-                    (roll_, pitch_, yaw_) = tf.transformations.euler_from_matrix(F)
+                    (roll_, pitch_, yaw_) = tf.transformations.euler_from_quaternion(get_vector_orientation(predmsg.pose.orientation))
 
                     # get cartesian & sperical representation of observation translation
                     (x, y, z) = (marker.pose.position.x, marker.pose.position.y, marker.pose.position.z)
@@ -77,13 +78,12 @@ class tuw_record:
                     a = math.atan2(x, z)
 
                     # get euler representation of observation orientation
-                    quaternion = (marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w)
-                    (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quaternion)
+                    (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(get_vector_orientation(marker.pose.orientation))
 
                     # write out transformed pose using euler representation
-                    f.write('{};{};{};{};{};{}\n'.format(l_, a_, yaw_, l, a, yaw))
+                    f.write('{};{};{};{};{};{}\n'.format(l_, a_, pitch_, l, a, pitch))
 
-        except tf2_ros.TransformException as ex:
+        except tf.Exception as ex:
             rospy.logwarn('[%s cb_marker] %s', rospy.get_name(), ex)
 
 if __name__ == '__main__':
