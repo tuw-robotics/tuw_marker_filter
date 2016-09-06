@@ -35,6 +35,7 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
       n_ ( n ),
       n_param_ ( "~" ) {
     int mode;
+    std::vector<double> beta;
 
     // read in common parameters
     n_param_.param<int> ( "mode", mode, 0 );
@@ -49,16 +50,29 @@ SLAMNode::SLAMNode ( ros::NodeHandle & n )
     switch ( mode ) {
     case SLAMTechnique::EKF:
         // read in EKF specific parameters
-        double beta_1, beta_2, beta_3, beta_4, beta_5, beta_6;
-        n_param_.getParam ( "beta_1", beta_1 );
-        n_param_.getParam ( "beta_2", beta_2 );
-        n_param_.getParam ( "beta_3", beta_3 );
-        n_param_.getParam ( "beta_4", beta_4 );
-        n_param_.getParam ( "beta_5", beta_5 );
-        n_param_.getParam ( "beta_6", beta_6 );
+        beta =  std::vector<double> ( 18 ) ;
+
+        n_param_.getParam ( "beta_1", beta[0] );
+        n_param_.getParam ( "beta_2", beta[1] );
+        n_param_.getParam ( "beta_3", beta[2] );
+        n_param_.getParam ( "beta_4", beta[3] );
+        n_param_.getParam ( "beta_5", beta[4] );
+        n_param_.getParam ( "beta_6", beta[5] );
+        n_param_.getParam ( "beta_7", beta[6] );
+        n_param_.getParam ( "beta_8", beta[7] );
+        n_param_.getParam ( "beta_9", beta[8] );
+        n_param_.getParam ( "beta_10", beta[9] );
+        n_param_.getParam ( "beta_11", beta[10] );
+        n_param_.getParam ( "beta_12", beta[11] );
+        n_param_.getParam ( "beta_13", beta[12] );
+        n_param_.getParam ( "beta_14", beta[13] );
+        n_param_.getParam ( "beta_15", beta[14] );
+        n_param_.getParam ( "beta_16", beta[15] );
+        n_param_.getParam ( "beta_17", beta[16] );
+        n_param_.getParam ( "beta_18", beta[17] );
 
         zt_ = std::make_shared<tuw::MeasurementMarker>();
-        slam_technique_ = std::make_shared<tuw::EKFSLAM> ( beta_1, beta_2, beta_3, beta_4, beta_5, beta_6 );
+        slam_technique_ = std::make_shared<tuw::EKFSLAM> ( beta );
         break;
     default:
         ROS_ERROR ( "[%s] mode %i is not supported", ros::this_node::getName().c_str(), mode );

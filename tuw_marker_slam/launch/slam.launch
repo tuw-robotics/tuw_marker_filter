@@ -5,12 +5,24 @@
   <arg name="frame_id_map" default="map" />
   <arg name="frame_id_odom" default="odom" />
   <arg name="frame_id_base" default="base_link" />
-  <arg name="beta_1" default="1.11840023647110e-03" />
-  <arg name="beta_2" default="1.08841788897499e-02" />
-  <arg name="beta_3" default="4.49500672685259e-07" />
-  <arg name="beta_4" default="7.03448116182080e-05" />
-  <arg name="beta_5" default="2.88386534626639e-06" />
-  <arg name="beta_6" default="2.46471128604309e-05" />
+  <arg name="beta_1" default="0.0015103455" />
+  <arg name="beta_2" default="0.003071759" />
+  <arg name="beta_3" default="0.021011396" />
+  <arg name="beta_4" default="0.0190693207" />
+  <arg name="beta_5" default="-0.008735789" />
+  <arg name="beta_6" default="0.0281365869" />
+  <arg name="beta_7" default="0.020088797" />
+  <arg name="beta_8" default="-0.0004039174" />
+  <arg name="beta_9" default="0.0085393506" />
+  <arg name="beta_10" default="0.0010229352" />
+  <arg name="beta_11" default="-0.0007342643" />
+  <arg name="beta_12" default="0.0028717525" />
+  <arg name="beta_13" default="0.002575912" />
+  <arg name="beta_14" default="0.0721304388" />
+  <arg name="beta_15" default="-0.0026843387" />
+  <arg name="beta_16" default="0.1055950503" />
+  <arg name="beta_17" default="-0.0081320887" />
+  <arg name="beta_18" default="0.1104663445" />
 
   <!-- Remapping -->
   <arg name="marker" default="marker" />
@@ -28,6 +40,18 @@
       <param name="beta_4" value="$(arg beta_4)" />
       <param name="beta_5" value="$(arg beta_5)" />
       <param name="beta_6" value="$(arg beta_6)" />
+      <param name="beta_7" value="$(arg beta_7)" />
+      <param name="beta_8" value="$(arg beta_8)" />
+      <param name="beta_9" value="$(arg beta_9)" />
+      <param name="beta_10" value="$(arg beta_10)" />
+      <param name="beta_11" value="$(arg beta_11)" />
+      <param name="beta_12" value="$(arg beta_12)" />
+      <param name="beta_13" value="$(arg beta_13)" />
+      <param name="beta_14" value="$(arg beta_14)" />
+      <param name="beta_15" value="$(arg beta_15)" />
+      <param name="beta_16" value="$(arg beta_16)" />
+      <param name="beta_17" value="$(arg beta_17)" />
+      <param name="beta_18" value="$(arg beta_18)" />
       <remap from="marker" to="$(arg marker)" />
       <remap from="cmd" to="$(arg cmd)" />
   </node>

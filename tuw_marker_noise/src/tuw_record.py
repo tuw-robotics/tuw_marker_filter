@@ -81,7 +81,8 @@ class tuw_record:
                     (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(get_vector_orientation(marker.pose.orientation))
 
                     # write out transformed pose using euler representation
-                    f.write('{};{};{};{};{};{}\n'.format(l_, a_, pitch_, l, a, pitch))
+                    if  msg.distance_min < l and l < msg.distance_max:
+                      f.write('{};{};{};{};{};{}\n'.format(l_, a_, pitch_, l, a, pitch))
 
         except tf.Exception as ex:
             rospy.logwarn('[%s cb_marker] %s', rospy.get_name(), ex)

@@ -4,14 +4,9 @@
 
 using namespace tuw;
 
-EKFSLAM::EKFSLAM( const double beta_1, const double beta_2, const double beta_3, const double beta_4, const double beta_5, const double beta_6 ) :
+EKFSLAM::EKFSLAM( const std::vector<double> beta ) :
     SLAMTechnique ( EKF ),
-    beta_1_ ( beta_1 ),
-    beta_2_ ( beta_2 ),
-    beta_3_ ( beta_3 ),
-    beta_4_ ( beta_4 ),
-    beta_5_ ( beta_5 ),
-    beta_6_ ( beta_6 ) {
+    beta_ ( beta ) {
 }
 
 void EKFSLAM::init() {
@@ -404,14 +399,15 @@ void EKFSLAM::measurement ( const MeasurementMarkerConstPtr &zt, const CorrDataP
 cv::Matx<double, 3, 3> EKFSLAM::measurement_noise ( MeasurementMarker::Marker zi ) {
     double l = zi.length;
     double a = zi.angle;
+    double o = zi.orientation;
 
-    /*return cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
-                                   0, beta_3_*l*l + beta_4_*a*a, 0,
-                                   0, 0, beta_5_*l*l + beta_6_*a*a );*/
+    double var_l = std::max<double> ( beta_[0]*l*l  + beta_[1], 0 )  + std::max<double> ( std::min<double> ( beta_[2]*a*a  + beta_[3], M_PI*M_PI ), 0 )  + std::max<double> ( std::min<double> ( beta_[4]*o*o  + beta_[5], M_PI*M_PI ), 0 );
+    double var_a = std::min<double> ( std::max<double> ( beta_[6]/l/l  + beta_[7], 0 )  + std::max<double> ( std::min<double> ( beta_[8]*a*a  + beta_[9], M_PI*M_PI ), 0 )  + std::max<double> ( std::min<double> ( beta_[10]*o*o + beta_[11], M_PI*M_PI ), 0 ), M_PI*M_PI );
+    double var_o = std::min<double> ( std::max<double> ( beta_[12]*l*l + beta_[13], 0 ) + std::max<double> ( std::min<double> ( beta_[14]*a*a + beta_[15], M_PI*M_PI ), 0 ) + std::max<double> ( std::min<double> ( beta_[16]*o*o + beta_[17], M_PI*M_PI ), 0 ), M_PI*M_PI );
 
-    return cv::Matx<double, 3,3> ( beta_1_*l*l + beta_2_*a*a, 0, 0,
-                                0, beta_3_*l*l + beta_4_*a*a, 0,
-                                0, 0, M_PI );
+    return cv::Matx<double, 3,3> ( var_l, 0, 0,
+                                   0, var_a, 0,
+                                   0, 0, var_o );
 }
 
 void EKFSLAM::update() {

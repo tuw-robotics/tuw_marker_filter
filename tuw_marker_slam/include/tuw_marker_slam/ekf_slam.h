@@ -19,14 +19,9 @@ public:
     /**
     * Constructor
     *
-    * @param beta_1 parameter for the implemented measurement noise model
-    * @param beta_2 parameter for the implemented measurement noise model
-    * @param beta_3 parameter for the implemented measurement noise model
-    * @param beta_4 parameter for the implemented measurement noise model
-    * @param beta_5 parameter for the implemented measurement noise model
-    * @param beta_6 parameter for the implemented measurement noise model
+    * @param beta parameters for the implemented measurement noise model
     **/
-    EKFSLAM( const double beta_1, const double beta_2, const double beta_3, const double beta_4, const double beta_5, const double beta_6 );
+    EKFSLAM( const std::vector<double> beta );
 
     /**
      * starts the SLAM cycle and predicts the robot and landmark poses at the timestamp
@@ -158,12 +153,7 @@ private:
     void integration ( const MeasurementMarkerConstPtr &zt );
 
     tuw_marker_slam::EKFSLAMConfig config_;     /// parameters
-    const double beta_1_;                       /// parameter for the implemented measurement noise model
-    const double beta_2_;                       /// parameter for the implemented measurement noise model
-    const double beta_3_;                       /// parameter for the implemented measurement noise model
-    const double beta_4_;                       /// parameter for the implemented measurement noise model
-    const double beta_5_;                       /// parameter for the implemented measurement noise model
-    const double beta_6_;                       /// parameter for the implemented measurement noise model
+    const std::vector<double> beta_;            /// parameters for the implemented measurement noise model
 
     cv::Mat_<double> y;                         /// mean vector of y = (x m1 m2 ...)
     cv::Mat_<double> x;                         /// mean vector of x

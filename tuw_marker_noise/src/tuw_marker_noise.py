@@ -20,6 +20,18 @@ class tuw_marker_noise:
         self.beta_4 = rospy.get_param('~beta_4')
         self.beta_5 = rospy.get_param('~beta_5')
         self.beta_6 = rospy.get_param('~beta_6')
+        self.beta_7 = rospy.get_param('~beta_7')
+        self.beta_8 = rospy.get_param('~beta_8')
+        self.beta_9 = rospy.get_param('~beta_9')
+        self.beta_10 = rospy.get_param('~beta_10')
+        self.beta_11 = rospy.get_param('~beta_11')
+        self.beta_12 = rospy.get_param('~beta_12')
+        self.beta_13 = rospy.get_param('~beta_13')
+        self.beta_14 = rospy.get_param('~beta_14')
+        self.beta_15 = rospy.get_param('~beta_15')
+        self.beta_16 = rospy.get_param('~beta_16')
+        self.beta_17 = rospy.get_param('~beta_17')
+        self.beta_18 = rospy.get_param('~beta_18')
 
         # initialize axes
         if self.plot_data:
@@ -60,13 +72,9 @@ class tuw_marker_noise:
             (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(q_o)
 
             # calculate noise
-            sigma_radial =    math.sqrt(self.beta_1 * radial**2 + self.beta_2 * azimuthal**2)
-            sigma_azimuthal = math.sqrt(self.beta_3 * radial**2 + self.beta_4 * azimuthal**2)
-            sigma_yaw =       math.sqrt(self.beta_5 * radial**2 + self.beta_6 * azimuthal**2)
-
-            #sigma_radial =    0.2
-            #sigma_azimuthal = 0.05
-            #sigma_yaw =       0.1
+            sigma_radial =    math.sqrt(max(self.beta_1  * radial**2 + self.beta_2,  0) + max(min(self.beta_3  * azimuthal**2 + self.beta_4,  math.pi**2), 0) + max(min(self.beta_5  * yaw**2 + self.beta_6,  math.pi**2), 0))
+            sigma_azimuthal = min(math.sqrt(max(self.beta_7  / radial**2 + self.beta_8,  0) + max(min(self.beta_9  * azimuthal**2 + self.beta_10, math.pi**2), 0) + max(min(self.beta_11 * yaw**2 + self.beta_12, math.pi**2), 0)), math.pi) 
+            sigma_yaw =       min(math.sqrt(max(self.beta_13 * radial**2 + self.beta_14, 0) + max(min(self.beta_15 * azimuthal**2 + self.beta_16, math.pi**2), 0) + max(min(self.beta_17 * yaw**2 + self.beta_18, math.pi**2), 0)), math.pi)
 
             # add gaussian noise in spherical coordinate system
             radial += numpy.random.normal(0, sigma_radial)
@@ -99,7 +107,11 @@ class tuw_marker_noise:
                 o_n = numpy.dot(R_n, o)
 
                 # plot ids and arrows indicating the pose of original and noisy marker
-                self.ax.text(p_o[0], p_o[1], p_o[2], marker.ids[0], None)
+                if len(marker.ids) > 0:
+                    id = marker.ids[0]
+                else:
+                    id = '{}'
+                self.ax.text(p_o[0], p_o[1], p_o[2], id, None)
                 self.ax.quiver(p_o[0], p_o[1], p_o[2], o_o[0], o_o[1], o_o[2])
                 self.ax.quiver(p_n[0], p_n[1], p_n[2], o_n[0], o_n[1], o_n[2])
 
