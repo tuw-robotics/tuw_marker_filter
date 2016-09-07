@@ -5,24 +5,24 @@
   <arg name="frame_id_map" default="/r1/map" />
   <arg name="frame_id_odom" default="/r1/odom" />
   <arg name="frame_id_base" default="/r1/base_link" />
-  <arg name="beta_1" default="0.0015103455" />
-  <arg name="beta_2" default="0.003071759" />
-  <arg name="beta_3" default="0.021011396" />
-  <arg name="beta_4" default="0.0190693207" />
-  <arg name="beta_5" default="-0.008735789" />
-  <arg name="beta_6" default="0.0281365869" />
-  <arg name="beta_7" default="0.020088797" />
-  <arg name="beta_8" default="-0.0004039174" />
-  <arg name="beta_9" default="0.0085393506" />
-  <arg name="beta_10" default="0.0010229352" />
-  <arg name="beta_11" default="-0.0007342643" />
-  <arg name="beta_12" default="0.0028717525" />
-  <arg name="beta_13" default="0.002575912" />
-  <arg name="beta_14" default="0.0721304388" />
-  <arg name="beta_15" default="-0.0026843387" />
-  <arg name="beta_16" default="0.1055950503" />
-  <arg name="beta_17" default="-0.0081320887" />
-  <arg name="beta_18" default="0.1104663445" />
+  <arg name="beta_1" default="0.0015108793" />
+  <arg name="beta_2" default="0.0030759394" />
+  <arg name="beta_3" default="0.0209484956" />
+  <arg name="beta_4" default="0.0190882545" />
+  <arg name="beta_5" default="-0.0087332785" />
+  <arg name="beta_6" default="0.0281445351" />
+  <arg name="beta_7" default="0.0200817239" />
+  <arg name="beta_8" default="-0.0004093125" />
+  <arg name="beta_9" default="0.0085052679" />
+  <arg name="beta_10" default="0.0010222184" />
+  <arg name="beta_11" default="-0.0007397988" />
+  <arg name="beta_12" default="0.0028693465" />
+  <arg name="beta_13" default="0.0025763766" />
+  <arg name="beta_14" default="0.0721725284" />
+  <arg name="beta_15" default="-0.0028335332" />
+  <arg name="beta_16" default="0.1056639276" />
+  <arg name="beta_17" default="-0.0081272976" />
+  <arg name="beta_18" default="0.1105084965" />
 
   <!-- Remapping -->
   <arg name="marker" default="/r1/markers" />

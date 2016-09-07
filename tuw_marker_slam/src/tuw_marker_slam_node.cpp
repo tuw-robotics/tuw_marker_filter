@@ -227,7 +227,6 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
         zt->pose2d() = Pose2D ( transform.getOrigin().getX(),
                                 transform.getOrigin().getY(),
                                 ( xzplane_ ) ? yaw + M_PI/2 : yaw );
-        
     } catch ( tf::TransformException &ex ) {
         ROS_ERROR ( "[%s callbackMarker] %s", ros::this_node::getName().c_str(), ex.what() );
         zt->pose2d() = Pose2D ( 0.225,  0, 0 );
@@ -268,7 +267,9 @@ void SLAMNode::callbackMarker ( const marker_msgs::MarkerDetection &_marker ) {
         length = sqrt( x*x + y*y );
         angle = atan2 ( y, x );
 
-        if (length < zt->range_min() || length > zt->range_max()) continue;
+        if (length < zt->range_min() || length > zt->range_max() ||
+            angle < zt->angle_min() || angle > zt->angle_max())
+            continue;
 
         MeasurementMarker::Marker zt_i;
         zt_i.ids = _marker.markers[i].ids;

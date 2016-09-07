@@ -81,7 +81,7 @@ class tuw_record:
                     (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(get_vector_orientation(marker.pose.orientation))
 
                     # write out transformed pose using euler representation
-                    if  msg.distance_min < l and l < msg.distance_max:
+                    if  msg.distance_min < l and l < msg.distance_max and -msg.fov_horizontal/2 < a and a < msg.fov_horizontal/2:
                       f.write('{};{};{};{};{};{}\n'.format(l_, a_, pitch_, l, a, pitch))
 
         except tf.Exception as ex:
