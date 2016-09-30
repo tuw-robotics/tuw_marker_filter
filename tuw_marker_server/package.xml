@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>tuw_marker_server</name>
-  <version>0.0.0</version>
+  <version>1.0.0</version>
   <description>The tuw_marker_server package contains a map server for saving and providing marker maps based on MarkerWithCovarianceArray messages from the marker_msgs package.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
