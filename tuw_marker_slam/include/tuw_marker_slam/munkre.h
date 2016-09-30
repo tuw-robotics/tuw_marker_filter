@@ -3,11 +3,15 @@
 
 #include <opencv2/core/core.hpp>
 
+
+
 namespace tuw {
 /**
  * This class implements Munkre's assignment algorithm
  * 
- * see http://csclab.murraystate.edu/bob.pilgrim/445/munkres.html
+ * The implementation itself is based on:
+ * @see http://csclab.murraystate.edu/bob.pilgrim/445/munkres.html
+ * In this sense, a special thanks goes to the authors and their work!
  */
 class Munkre {
 public:
