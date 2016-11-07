@@ -49,6 +49,7 @@ build
 
 # KDevelop
 *kdev*
+*.kate-swp
 
 # ROS
 build
