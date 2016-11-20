@@ -1,26 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(tuw_marker_slam)
-set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+project(tuw_feature_slam)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  marker_msgs
   roscpp
   rospy
-  geometry_msgs
-  marker_msgs
-  tf
-  tuw_geometry
-  dynamic_reconfigure 
+  sensor_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS
-  date_time
-)
+# find_package(Boost REQUIRED COMPONENTS system)
 
-find_package(OpenCV REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -75,7 +69,7 @@ find_package(OpenCV REQUIRED)
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs#   sensor_msgs#   std_msgs
+#   marker_msgs#   sensor_msgs#   std_msgs
 # )
 
 ################################################
@@ -93,10 +87,10 @@ find_package(OpenCV REQUIRED)
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-generate_dynamic_reconfigure_options(
-  cfg/SLAM.cfg
-  cfg/EKFSLAM.cfg
-)
+# generate_dynamic_reconfigure_options(
+#   cfg/DynReconf1.cfg
+#   cfg/DynReconf2.cfg
+# )
 
 ###################################
 ## catkin specific configuration ##
@@ -108,10 +102,10 @@ generate_dynamic_reconfigure_options(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES tuw_marker_slam
-  CATKIN_DEPENDS roscpp rospy geometry_msgs marker_msgs tf tuw_geometry dynamic_reconfigure 
-  DEPENDS Boost OpenCV
+#  INCLUDE_DIRS include
+#  LIBRARIES tuw_feature_slam
+#  CATKIN_DEPENDS marker_msgs roscpp rospy sensor_msgs std_msgs
+#  DEPENDS system_lib
 )
 
 ###########
@@ -120,49 +114,32 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include)
+# include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(tuw_marker_slam
-  src/${PROJECT_NAME}/tuw_marker_slam.cpp
-  src/${PROJECT_NAME}/slam_technique.cpp
-  src/${PROJECT_NAME}/ekf_slam.cpp
-  src/${PROJECT_NAME}/measurement_marker.cpp
-  src/${PROJECT_NAME}/munkre.cpp
-)
+# add_library(tuw_feature_slam
+#   src/${PROJECT_NAME}/tuw_feature_slam.cpp
+# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(tuw_marker_slam 
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
+# add_dependencies(tuw_feature_slam ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(tuw_marker_slam_node
-  src/tuw_marker_slam_node.cpp
-)
+# add_executable(tuw_feature_slam_node src/tuw_feature_slam_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(tuw_marker_slam_node 
-  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-  ${catkin_EXPORTED_TARGETS}
-  ${PROJECT_NAME}_gencfg
-)
+# add_dependencies(tuw_feature_slam_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(tuw_marker_slam_node
-  tuw_marker_slam
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
+# target_link_libraries(tuw_feature_slam_node
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -179,7 +156,7 @@ target_link_libraries(tuw_marker_slam_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS tuw_local_planner tuw_local_planner_node
+# install(TARGETS tuw_feature_slam tuw_feature_slam_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -204,7 +181,7 @@ target_link_libraries(tuw_marker_slam_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_tuw_local_planner.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_tuw_feature_slam.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
