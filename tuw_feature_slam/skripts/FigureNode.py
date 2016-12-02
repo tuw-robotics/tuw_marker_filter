@@ -8,6 +8,7 @@ import rospy
 import tf
 import numpy as np
 from nav_msgs.msg import Odometry
+from marker_msgs.msg import Marker
 from geometry_msgs.msg import Twist
 import matplotlib.pyplot as plt 
 from matplotlib.pyplot import imshow, pause
@@ -26,6 +27,10 @@ ax.set_xlim([-10,10])
 ax.set_ylim([-10,10])
 plt.show()
 
+def normalize_angle(phases):
+    return np.arctan2(np.sin(phases), np.cos(phases))
+
+
 class FigureNode:
     '''
     classdocs
@@ -34,10 +39,8 @@ class FigureNode:
         '''
         Constructor
         '''
-        self.start_offset = 5;
         self.xp = np.array([[ 0, 0 , 0]])
         self.P = np.matrix([[ 0, 0 , 0],[ 0, 0 , 0],[ 0, 0 , 0]])
-        self.odom = np.array([[ 0, 0 , 0]])
         self.cmd = np.array([[ 0, 0]])
         
     def callbackOdom(self, odom):
@@ -46,55 +49,54 @@ class FigureNode:
         self.odom = np.array([[ odom.pose.pose.position.x, odom.pose.pose.position.y ,euler[2]]]);
         #rospy.loginfo("Odom " + np.array_str(self.odom))
         
+    def callbackMarker(self, marker):
+        self.marker = marker
+        rospy.loginfo("marker")
+        
     def callbackCmd(self, twist):
-        if hasattr(self, 'cmd_last'):
+        if hasattr(self, 'last_callbackCmd'):
             now = rospy.Time.now() 
-            duration =  now - self.cmd_last
-            self.cmd_last = now
+            duration =  now - self.last_callbackCmd
+            self.last_callbackCmd = now
         else:
-            self.xp = np.copy(self.odom)
-            self.cmd_last = rospy.Time.now()
+            if hasattr(self, 'odom'):
+                self.xp = np.copy(self.odom)
+                self.last_callbackCmd = rospy.Time.now()
             return
         
         dt = duration.to_sec()     
         if dt > 0.2 :
-            rospy.loginfo("timing error: " + dt)
+            rospy.loginfo("timing error: %s" + dt)
             return
 
-        v = twist.linear.x
-        w = twist.angular.z        
-        self.cmd = np.array([[v, w]])
+        self.cmd = np.array([[twist.linear.x, twist.angular.z]])
+        v = self.cmd[0,0]
+        w = self.cmd[0,1]
         x = self.xp[0,0]
         y = self.xp[0,1]
         theta = self.xp[0,2]
         G = np.matrix( [[0, 0, 0], [0, 0, 0], [0, 0, 0]]);
         V = np.matrix( [[0, 0], [0, 0]]);
-        if(np.fabs(w) > 0.01):
+        if(np.fabs(w) > 0.0):
             r = v/w;
             dx = -r * np.sin(theta) + r * np.sin(theta + w * dt)
             dy = +r * np.cos(theta) - r * np.cos(theta + w * dt)
             da = w * dt
         else:
-            dx = v * np.sin(theta) * dt
-            dy = v * np.cos(theta) * dt
+            dx = v * np.cos(theta) * dt
+            dy = v * np.sin(theta) * dt
             da = 0.0
         
         self.xp = self.xp + np.array([[ dx, dy , da]])
-        self.xp [0,2] = ( self.xp [0,2] + np.pi) % (2 * np.pi ) - np.pi
+        normalize_angle(self.xp [0,2])
         
-        
-        
-        
-        #rospy.loginfo("cmd: " + np.array_str(self.cmd))
-        #rospy.loginfo("odom: " + np.array_str(self.odom))
-        #rospy.loginfo("xp: " + np.array_str(self.xp))
         
         
     def init_node(self):
         rospy.init_node('DiffControl', anonymous=True)
-
-        rospy.Subscriber("odom", Odometry, self.callbackOdom)
-        rospy.Subscriber("cmd_vel", Twist, self.callbackCmd)
+        self.sub_odom = rospy.Subscriber("odom", Odometry, self.callbackOdom)
+        self.sub_cmd = rospy.Subscriber("cmd_vel", Twist, self.callbackCmd)
+        self.sub_marker = rospy.Subscriber("base_marker_detection", Marker, self.callbackMarker)
         
         
     def loop(self):
@@ -102,8 +104,13 @@ class FigureNode:
         rate = rospy.Rate(5) # 10hz
         while not rospy.is_shutdown():
             
-            ax.scatter(self.odom[0,0], self.odom[0,1], c='r', alpha=0.5)
+            if hasattr(self, 'odom'):
+                ax.scatter(self.odom[0,0], self.odom[0,1], c='r', alpha=0.5)
             ax.scatter(self.xp[0,0], self.xp[0,1], c='b', alpha=0.5)
+            
+            if hasattr(self, 'marker'):
+                for i in range(0, len(self.marker.markers)):
+                    print i 
             plt.draw()
             pause(0.01)
             rate.sleep()
