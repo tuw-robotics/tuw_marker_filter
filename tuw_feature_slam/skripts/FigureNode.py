@@ -8,7 +8,7 @@ import rospy
 import tf
 import numpy as np
 from nav_msgs.msg import Odometry
-from marker_msgs.msg import Marker
+from marker_msgs.msg import MarkerDetection
 from geometry_msgs.msg import Twist
 import matplotlib.pyplot as plt 
 from matplotlib.pyplot import imshow, pause
@@ -49,8 +49,8 @@ class FigureNode:
         self.odom = np.array([[ odom.pose.pose.position.x, odom.pose.pose.position.y ,euler[2]]]);
         #rospy.loginfo("Odom " + np.array_str(self.odom))
         
-    def callbackMarker(self, marker):
-        self.marker = marker
+    def callbackMarker(self, markers):
+        self.markers = markers
         rospy.loginfo("marker")
         
     def callbackCmd(self, twist):
@@ -96,7 +96,7 @@ class FigureNode:
         rospy.init_node('DiffControl', anonymous=True)
         self.sub_odom = rospy.Subscriber("odom", Odometry, self.callbackOdom)
         self.sub_cmd = rospy.Subscriber("cmd_vel", Twist, self.callbackCmd)
-        self.sub_marker = rospy.Subscriber("base_marker_detection", Marker, self.callbackMarker)
+        self.sub_marker = rospy.Subscriber("base_marker_detection", MarkerDetection, self.callbackMarker)
         
         
     def loop(self):
