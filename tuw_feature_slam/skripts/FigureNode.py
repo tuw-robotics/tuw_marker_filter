@@ -18,7 +18,10 @@ from matplotlib.patches import Ellipse
 from matplotlib.patches import Circle
 from matplotlib.patches import Polygon
 from tuw.plot import PoseArrow
+from tuw.plot import Landmark
 from tuw.plot import CovEllipse
+from tuw.geometry import transform
+from tuw.geometry import convert_ros_pose_to_array
 warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 
 fig, ax = plt.subplots()
@@ -26,10 +29,12 @@ plt.draw()
 plt.ion()
 ax.axis('equal')
 ax.grid(True)
-ax.set_xticks([-15,-10,-5,0,5,10,15])
-ax.set_yticks([-15,-10,-5,0,5,10,15])
-ax.set_xlim([-20,20])
-ax.set_ylim([-20,20])
+ax.set_xticks(np.arange(-10, 10, 1))
+ax.set_yticks(np.arange(-10, 10, 1))
+ax.set_xlim([-10,10])
+plt.xlabel('x')
+ax.set_ylim([-10,10])
+plt.ylabel('y')
 plt.show()
 
 def normalize_angle(phases):
@@ -50,25 +55,31 @@ class FigureNode:
         self.cmd = np.array([[0, 0, 0]])
         
               
-        self.Arrow_Odom = PoseArrow(0.4, 'r', 0.4)
-        
-        self.Ellipse_P = CovEllipse('b', 0.4)
-        self.Arrow_Pose = PoseArrow(0.4, 'b', 1.0)
+        self.PlotOdom = PoseArrow(0.4, 'r', 0.4)        
+        self.PlotPoseCov = CovEllipse('b', 0.4)
+        self.PlotPose = PoseArrow(0.4, 'b', 1.0)
+        self.Landmarks = [ Landmark(0.4, 'r', 0.0) for i in range(10)]
         
         
     def callbackOdom(self, odom):
-        q = odom.pose.pose.orientation;
-        euler = tf.transformations.euler_from_quaternion([q.x,q.y,q.z,q.w])
-        self.odom = np.array([[ odom.pose.pose.position.x, odom.pose.pose.position.y ,euler[2]]]);
+        self.odom = convert_ros_pose_to_array(odom.pose.pose) 
         #rospy.loginfo("Odom " + np.array_str(self.odom))
         
     def callbackMarker(self, detection):
         self.markers = detection.markers
         #rospy.loginfo("marker")
         header = detection.header
-        for landmark in detection.markers:
+        for i in range(len(self.Landmarks)):
+            self.Landmarks[i].set_alpha(0.0)
+        for i in range(len(detection.markers)):
             #rospy.loginfo("id: %s" + str(landmark.ids))
-            self.predict_landmark(landmark)
+            y = convert_ros_pose_to_array(detection.markers[i].pose)
+            yp = np.copy(y)
+            transform(y, self.xp, yp)
+            self.Landmarks[i].set_pose(yp)
+            self.Landmarks[i].set_alpha(0.6)
+            
+            
             
         
         
@@ -154,22 +165,20 @@ class FigureNode:
     def loop(self):
 
         rate = rospy.Rate(10) # 10hz
-        ax.add_artist(self.Ellipse_P)
-        ax.add_artist(self.Arrow_Pose)
-        ax.add_artist(self.Arrow_Odom)
+        ax.add_artist(self.PlotPoseCov)
+        ax.add_artist(self.PlotPose)
+        ax.add_artist(self.PlotOdom)
+        for i in range(len(self.Landmarks)):
+            ax.add_artist(self.Landmarks[i])
         while not rospy.is_shutdown():
             
             if hasattr(self, 'odom'):
-                self.Arrow_Odom.set_pose(self.odom)
-                
+                self.PlotOdom.set_pose(self.odom)                
             
             if True:                                        
-                self.Arrow_Pose.set_pose(self.xp)
-                self.Ellipse_P.set_cov(self.xp, self.P)
+                self.PlotPose.set_pose(self.xp)
+                self.PlotPoseCov.set_cov(self.xp, self.P)
             
-            if hasattr(self, 'marker'):
-                for i in range(0, len(self.marker.markers)):
-                    print i 
             plt.draw()
             pause(0.01)
             rate.sleep()

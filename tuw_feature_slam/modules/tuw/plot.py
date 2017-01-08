@@ -5,6 +5,7 @@ Created on Jan 6, 2017
 '''
 from matplotlib.patches import Polygon
 from matplotlib.patches import Ellipse
+from tuw.geometry import transform
 import numpy as np
 
 class PoseArrow(Polygon):
@@ -19,34 +20,58 @@ class PoseArrow(Polygon):
         '''
         
         Polygon.__init__(self, np.array([[0,0]]), **kwargs)
-        self.shape = np.array([[0, size],
-                       [np.sin(2.35) * size, np.cos(2.35) * size], 
+        #self.shape = np.array([[0, size],
+        #               [np.sin(2.35) * size, np.cos(2.35) * size], 
+        #               [0, 0], 
+        #               [np.sin(-2.35) * size, np.cos(-2.35) * size]]);
+                       
+        self.shape = np.array([[size, 0],
+                       [np.cos(2.35) * size, np.sin(2.35) * size], 
                        [0, 0], 
-                       [np.sin(-2.35) * size, np.cos(-2.35) * size]]);
+                       [np.cos(-2.35) * size, np.sin(-2.35) * size]]);
         
         self.set_alpha(tranparency)
         self.set_edgecolor(color)
         self.set_facecolor('none')
     
     def set_pose(self, pose):
-        x = pose[0,0]
-        y = pose[0,1]
-        theta = pose[0,2]   
-        s = np.cos(theta);
-        c = np.sin(theta);
         xy = np.copy(self.shape)
-        for i in range(len(self.shape)):
-            xy[i,0] =  c * self.shape[i,0] + s * self.shape[i,1] + x
-            xy[i,1] = -s * self.shape[i,0] + c * self.shape[i,1] + y
+        transform(self.shape, pose, xy)
         self.set_xy(xy);
         
+class Landmark(Polygon):
+    '''
+    classdocs
+    '''
+    def __init__(self, size, color, tranparency, **kwargs):
+        '''
+        Constructor
+        '''
         
+        Polygon.__init__(self, np.array([[0,0]]), **kwargs)
+        r = size/2;
+        self.shape = np.array([[ 0,  0],
+                               [ r,  0],
+                               [ r,  r],
+                               [-r,  r], 
+                               [-r, -r], 
+                               [ r, -r], 
+                               [ r,  0]]);
+        
+        self.set_alpha(tranparency)
+        self.set_edgecolor(color)
+        self.set_facecolor('none')
+    
+    def set_pose(self, pose):
+        xy = np.copy(self.shape)
+        transform(self.shape, pose, xy)
+        self.set_xy(xy);
+                
+                
 class CovEllipse(Ellipse):
     '''
     classdocs
     '''
-
-
     def __init__(self, color, tranparency, **kwargs):
         '''
         Constructor
