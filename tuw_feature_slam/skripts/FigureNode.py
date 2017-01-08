@@ -20,7 +20,7 @@ from matplotlib.patches import Polygon
 from tuw.plot import PoseArrow
 from tuw.plot import Landmark
 from tuw.plot import CovEllipse
-from tuw.geometry import transform
+from tuw.geometry import transform_poses
 from tuw.geometry import convert_ros_pose_to_array
 warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 
@@ -58,7 +58,7 @@ class FigureNode:
         self.PlotOdom = PoseArrow(0.4, 'r', 0.4)        
         self.PlotPoseCov = CovEllipse('b', 0.4)
         self.PlotPose = PoseArrow(0.4, 'b', 1.0)
-        self.Landmarks = [ Landmark(0.4, 'r', 0.0) for i in range(10)]
+        self.PlotLandmarks = [ Landmark(0.4, 'r', 0.0) for i in range(10)]
         
         
     def callbackOdom(self, odom):
@@ -69,15 +69,15 @@ class FigureNode:
         self.markers = detection.markers
         #rospy.loginfo("marker")
         header = detection.header
-        for i in range(len(self.Landmarks)):
-            self.Landmarks[i].set_alpha(0.0)
+        for i in range(len(self.PlotLandmarks)):
+            self.PlotLandmarks[i].set_alpha(0.0)
         for i in range(len(detection.markers)):
             #rospy.loginfo("id: %s" + str(landmark.ids))
             y = convert_ros_pose_to_array(detection.markers[i].pose)
             yp = np.copy(y)
-            transform(y, self.xp, yp)
-            self.Landmarks[i].set_pose(yp)
-            self.Landmarks[i].set_alpha(0.6)
+            transform_poses(y, self.xp, yp)
+            self.PlotLandmarks[i].set_pose(yp)
+            self.PlotLandmarks[i].set_alpha(0.6)
             
             
             
@@ -168,8 +168,8 @@ class FigureNode:
         ax.add_artist(self.PlotPoseCov)
         ax.add_artist(self.PlotPose)
         ax.add_artist(self.PlotOdom)
-        for i in range(len(self.Landmarks)):
-            ax.add_artist(self.Landmarks[i])
+        for i in range(len(self.PlotLandmarks)):
+            ax.add_artist(self.PlotLandmarks[i])
         while not rospy.is_shutdown():
             
             if hasattr(self, 'odom'):

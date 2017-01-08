@@ -5,7 +5,7 @@ Created on Jan 6, 2017
 '''
 from matplotlib.patches import Polygon
 from matplotlib.patches import Ellipse
-from tuw.geometry import transform
+from tuw.geometry import transform_points
 import numpy as np
 
 class PoseArrow(Polygon):
@@ -36,7 +36,7 @@ class PoseArrow(Polygon):
     
     def set_pose(self, pose):
         xy = np.copy(self.shape)
-        transform(self.shape, pose, xy)
+        transform_points(self.shape, pose, xy)
         self.set_xy(xy);
         
 class Landmark(Polygon):
@@ -64,7 +64,7 @@ class Landmark(Polygon):
     
     def set_pose(self, pose):
         xy = np.copy(self.shape)
-        transform(self.shape, pose, xy)
+        transform_points(self.shape, pose, xy)
         self.set_xy(xy);
                 
                 
