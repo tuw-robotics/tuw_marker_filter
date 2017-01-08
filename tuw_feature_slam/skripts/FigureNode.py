@@ -55,13 +55,25 @@ class FigureNode:
         self.cmd = np.array([[0, 0, 0]])
         self.y = np.zeros((0,3))
         self.yp = np.zeros((0,3))
+        self.m = np.array([[ 3, 3, np.rad2deg( 20)],
+                           [-3, 3, np.rad2deg(  0)],
+                           [ 3,-3, np.rad2deg( 80)],
+                           [-3,-3, np.rad2deg(  0)],
+                           [ 6, 0, np.rad2deg( 20)],
+                           [ 0, 6, np.rad2deg(  0)],
+                           [-6, 0, np.rad2deg( 30)],
+                           [ 0,-6, np.rad2deg(  0)]] )
         
               
         self.PlotOdom = PoseArrow(0.4, 'r', 0.4)        
         self.PlotPoseCov = CovEllipse('b', 0.4)
         self.PlotPose = PoseArrow(0.4, 'b', 1.0)
         self.PlotLandmarks = [ Landmark(0.4, 'r', 0.0) for i in range(10)]
+        self.PlotMap = [ Landmark(0.4, 'g', 0.0) for i in range(len(self.m))]
         
+        for i in range(len(self.PlotMap)):
+                self.PlotMap[i].set_pose(self.m[i,0:3])
+                self.PlotMap[i].set_alpha(0.5)
         
     def callbackOdom(self, odom):
         self.odom = convert_ros_pose_to_array(odom.pose.pose) 
@@ -169,6 +181,8 @@ class FigureNode:
         ax.add_artist(self.PlotOdom)
         for i in range(len(self.PlotLandmarks)):
             ax.add_artist(self.PlotLandmarks[i])
+        for i in range(len(self.PlotMap)):
+            ax.add_artist(self.PlotMap[i])
         while not rospy.is_shutdown():
             
             if hasattr(self, 'odom'):
@@ -179,10 +193,11 @@ class FigureNode:
                 self.PlotPoseCov.set_cov(self.xp, self.P)
             
             for i in range(len(self.PlotLandmarks)):
-                self.PlotLandmarks[i].set_alpha(0.0)
-            for i in range(len(self.yp)):
-               self.PlotLandmarks[i].set_pose(self.yp[i,0:3])
-               self.PlotLandmarks[i].set_alpha(0.5)
+                if i < len(self.yp):
+                    self.PlotLandmarks[i].set_pose(self.yp[i,0:3])
+                    self.PlotLandmarks[i].set_alpha(0.5)
+                else:
+                    self.PlotLandmarks[i].set_alpha(0.0)
             
             plt.draw()
             pause(0.01)
