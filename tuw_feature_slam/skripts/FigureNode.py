@@ -31,9 +31,9 @@ ax.axis('equal')
 ax.grid(True)
 ax.set_xticks(np.arange(-10, 10, 1))
 ax.set_yticks(np.arange(-10, 10, 1))
-ax.set_xlim([-10,10])
+ax.set_xlim([-12,12])
 plt.xlabel('x')
-ax.set_ylim([-10,10])
+ax.set_ylim([-12,12])
 plt.ylabel('y')
 plt.show()
 
@@ -53,6 +53,8 @@ class FigureNode:
         self.xp = np.array([[ 0, 0 , 0]])
         self.P = np.matrix([[ 0.3, 0 , 0],[ 0, 0.3 , 0],[ 0, 0 , 0.1]])
         self.cmd = np.array([[0, 0, 0]])
+        self.y = np.zeros((0,3))
+        self.yp = np.zeros((0,3))
         
               
         self.PlotOdom = PoseArrow(0.4, 'r', 0.4)        
@@ -68,16 +70,13 @@ class FigureNode:
     def callbackMarker(self, detection):
         self.markers = detection.markers
         #rospy.loginfo("marker")
-        header = detection.header
-        for i in range(len(self.PlotLandmarks)):
-            self.PlotLandmarks[i].set_alpha(0.0)
+        header = detection.header        
+        self.y = np.zeros((len(detection.markers),3))
         for i in range(len(detection.markers)):
             #rospy.loginfo("id: %s" + str(landmark.ids))
-            y = convert_ros_pose_to_array(detection.markers[i].pose)
-            yp = np.copy(y)
-            transform_poses(y, self.xp, yp)
-            self.PlotLandmarks[i].set_pose(yp)
-            self.PlotLandmarks[i].set_alpha(0.6)
+            self.y[i,0:3] = convert_ros_pose_to_array(detection.markers[i].pose)
+        self.yp = np.zeros((len(detection.markers),3))
+        transform_poses(self.y, self.xp, self.yp)
             
             
             
@@ -178,6 +177,12 @@ class FigureNode:
             if True:                                        
                 self.PlotPose.set_pose(self.xp)
                 self.PlotPoseCov.set_cov(self.xp, self.P)
+            
+            for i in range(len(self.PlotLandmarks)):
+                self.PlotLandmarks[i].set_alpha(0.0)
+            for i in range(len(self.yp)):
+               self.PlotLandmarks[i].set_pose(self.yp[i,0:3])
+               self.PlotLandmarks[i].set_alpha(0.5)
             
             plt.draw()
             pause(0.01)
