@@ -55,14 +55,14 @@ class FigureNode:
         self.cmd = np.array([[0, 0, 0]])
         self.y = np.zeros((0,3))
         self.yp = np.zeros((0,3))
-        self.m = np.array([[ 3, 3, np.rad2deg( 20)],
-                           [-3, 3, np.rad2deg(  0)],
-                           [ 3,-3, np.rad2deg( 80)],
-                           [-3,-3, np.rad2deg(  0)],
-                           [ 6, 0, np.rad2deg( 20)],
-                           [ 0, 6, np.rad2deg(  0)],
-                           [-6, 0, np.rad2deg( 30)],
-                           [ 0,-6, np.rad2deg(  0)]] )
+        self.m = np.array([[ 1,  3, 3, np.rad2deg( 20)],
+                           [ 2, -3, 3, np.rad2deg(  0)],
+                           [ 3,  3,-3, np.rad2deg( 80)],
+                           [ 4, -3,-3, np.rad2deg(  0)],
+                           [ 5,  6, 0, np.rad2deg( 20)],
+                           [ 6,  0, 6, np.rad2deg(  0)],
+                           [ 7, -6, 0, np.rad2deg( 30)],
+                           [ 8,  0,-6, np.rad2deg(  0)]] )
         
               
         self.PlotOdom = PoseArrow(0.4, 'r', 0.4)        
@@ -72,7 +72,7 @@ class FigureNode:
         self.PlotMap = [ Landmark(0.4, 'g', 0.0) for i in range(len(self.m))]
         
         for i in range(len(self.PlotMap)):
-                self.PlotMap[i].set_pose(self.m[i,0:3])
+                self.PlotMap[i].set_pose(self.m[i,1:4])
                 self.PlotMap[i].set_alpha(0.5)
         
     def callbackOdom(self, odom):
@@ -84,11 +84,16 @@ class FigureNode:
         #rospy.loginfo("marker")
         header = detection.header        
         self.y = np.zeros((len(detection.markers),3))
+        self.s = np.zeros((len(detection.markers)),dtype=np.int)
         for i in range(len(detection.markers)):
-            #rospy.loginfo("id: %s" + str(landmark.ids))
+            rospy.loginfo("id: " + str(detection.markers[i].ids))
             self.y[i,0:3] = convert_ros_pose_to_array(detection.markers[i].pose)
-        self.yp = np.zeros((len(detection.markers),3))
-        transform_poses(self.y, self.xp, self.yp)
+            if len(detection.markers[i].ids) > 0:
+                self.s[i] = int(detection.markers[i].ids[0])
+            else :
+                self.s[i] = int(-1)
+            rospy.loginfo("id = " + str(self.s[i]))
+        self.correction_using_landmark()
             
             
             
@@ -159,10 +164,10 @@ class FigureNode:
         self.P = G * P_last * G.transpose() + V * M * V.transpose() 
         
         
-    def predict_landmark(self, landmark):
-        x = self.xp[0,0]
-        y = self.xp[0,1]
-        theta = self.xp[0,2]
+    def correction_using_landmark(self):
+        self.yp = np.zeros((len(self.y),3))
+        transform_poses(self.y, self.xp, self.yp)
+        
         
         #ax.scatter(self.odom[0,0], self.odom[0,1], c='r', alpha=0.5)
         
@@ -175,6 +180,11 @@ class FigureNode:
         
     def loop(self):
 
+        font = {'family': 'serif',
+                'color':  'darkred',
+                'weight': 'normal',
+                'size': 16,
+                }
         rate = rospy.Rate(10) # 10hz
         ax.add_artist(self.PlotPoseCov)
         ax.add_artist(self.PlotPose)
@@ -183,6 +193,7 @@ class FigureNode:
             ax.add_artist(self.PlotLandmarks[i])
         for i in range(len(self.PlotMap)):
             ax.add_artist(self.PlotMap[i])
+            ax.text(self.m[i,1], self.m[i,2], str(int(self.m[i,0])), fontdict=font)
         while not rospy.is_shutdown():
             
             if hasattr(self, 'odom'):
