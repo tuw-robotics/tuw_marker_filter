@@ -55,14 +55,15 @@ class FigureNode:
         self.cmd = np.array([[0, 0, 0]])
         self.y = np.zeros((0,3))
         self.yp = np.zeros((0,3))
-        self.m = np.array([[ 1,  3, 3, np.rad2deg( 20)],
-                           [ 2, -3, 3, np.rad2deg(  0)],
-                           [ 3,  3,-3, np.rad2deg( 80)],
-                           [ 4, -3,-3, np.rad2deg(  0)],
-                           [ 5,  6, 0, np.rad2deg( 20)],
-                           [ 6,  0, 6, np.rad2deg(  0)],
-                           [ 7, -6, 0, np.rad2deg( 30)],
-                           [ 8,  0,-6, np.rad2deg(  0)]] )
+        self.m = np.array([[   3, 3, np.rad2deg( 20)],
+                           [  -3, 3, np.rad2deg(  0)],
+                           [   3,-3, np.rad2deg( 80)],
+                           [  -3,-3, np.rad2deg(  0)],
+                           [   6, 0, np.rad2deg( 20)],
+                           [   0, 6, np.rad2deg(  0)],
+                           [  -6, 0, np.rad2deg( 30)],
+                           [   0,-6, np.rad2deg(  0)]] )
+        self.m_id = np.array([1,  2, 3,  4, 5, 6, 7, 8] )
         
               
         self.PlotOdom = PoseArrow(0.4, 'r', 0.4)        
@@ -72,7 +73,7 @@ class FigureNode:
         self.PlotMap = [ Landmark(0.4, 'g', 0.0) for i in range(len(self.m))]
         
         for i in range(len(self.PlotMap)):
-                self.PlotMap[i].set_pose(self.m[i,1:4])
+                self.PlotMap[i].set_pose(self.m[i,0:3])
                 self.PlotMap[i].set_alpha(0.5)
         
     def callbackOdom(self, odom):
@@ -180,20 +181,17 @@ class FigureNode:
         
     def loop(self):
 
-        font = {'family': 'serif',
-                'color':  'darkred',
-                'weight': 'normal',
-                'size': 16,
-                }
         rate = rospy.Rate(10) # 10hz
         ax.add_artist(self.PlotPoseCov)
         ax.add_artist(self.PlotPose)
         ax.add_artist(self.PlotOdom)
         for i in range(len(self.PlotLandmarks)):
             ax.add_artist(self.PlotLandmarks[i])
+            self.PlotLandmarks[i].set_ax(ax)
         for i in range(len(self.PlotMap)):
             ax.add_artist(self.PlotMap[i])
-            ax.text(self.m[i,1], self.m[i,2], str(int(self.m[i,0])), fontdict=font)
+            self.PlotMap[i].set_ax(ax)
+            self.PlotMap[i].set_text(self.m_id[i])
         while not rospy.is_shutdown():
             
             if hasattr(self, 'odom'):
@@ -207,6 +205,7 @@ class FigureNode:
                 if i < len(self.yp):
                     self.PlotLandmarks[i].set_pose(self.yp[i,0:3])
                     self.PlotLandmarks[i].set_alpha(0.5)
+                    self.PlotLandmarks[i].set_text(self.s[i])
                 else:
                     self.PlotLandmarks[i].set_alpha(0.0)
             

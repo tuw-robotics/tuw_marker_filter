@@ -66,8 +66,16 @@ class Landmark(Polygon):
         xy = np.copy(self.shape)
         transform_points(self.shape, pose, xy)
         self.set_xy(xy);
-                
-                
+    
+    def set_ax(self, ax):
+        self.ax = ax
+        
+    def set_text(self, id):
+        if hasattr(self, 'text_id'):
+            self.text_id
+        else:
+            self.text_id = self.ax.text(self.xy[0,0], self.xy[0,1], str(int(id)))
+        
 class CovEllipse(Ellipse):
     '''
     classdocs
