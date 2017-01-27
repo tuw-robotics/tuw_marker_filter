@@ -187,10 +187,8 @@ class FigureNode:
         ax.add_artist(self.PlotOdom)
         for i in range(len(self.PlotLandmarks)):
             ax.add_artist(self.PlotLandmarks[i])
-            self.PlotLandmarks[i].set_ax(ax)
         for i in range(len(self.PlotMap)):
             ax.add_artist(self.PlotMap[i])
-            self.PlotMap[i].set_ax(ax)
             self.PlotMap[i].set_text(self.m_id[i])
         while not rospy.is_shutdown():
             
