@@ -70,7 +70,6 @@ class PoseSerializer():
 
         orient = obj['orientation']
         if {'r', 'p', 'y'} <= set(orient.keys()):
-            print "euler"
             r = orient['r']
             p = orient['p']
             y = orient['y']
@@ -78,10 +77,7 @@ class PoseSerializer():
                 r = r * math.pi/180
                 p = p * math.pi/180
                 y = y * math.pi/180
-            quat = Quaternion(*quaternion_from_euler(r, p, y))
+            msg.orientation = Quaternion(*quaternion_from_euler(r, p, y))
         else:
-            print "quaternion"
-            quat = Quaternion(orient['x'], orient['y'], orient['z'], orient['w'])
-
-        msg.orientation = quat
+            msg.orientation = Quaternion(orient['x'], orient['y'], orient['z'], orient['w'])
         return msg
