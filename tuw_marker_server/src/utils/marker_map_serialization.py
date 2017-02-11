@@ -2,6 +2,7 @@ from marker_msgs.msg import MarkerWithCovarianceArray
 from marker_msgs.msg import MarkerWithCovariance
 from marker_msgs.msg import Marker
 from geometry_msgs.msg import Pose, Point, Quaternion
+from tf.transformations import *
 
 
 class MarkerWithCovarianceArraySerializer():
@@ -66,5 +67,14 @@ class PoseSerializer():
     def from_json(cls, obj):
         msg = Pose()
         msg.position = Point(obj['position']['x'], obj['position']['y'], obj['position']['z'])
-        msg.orientation = Quaternion(obj['orientation']['x'], obj['orientation']['y'], obj['orientation']['z'], obj['orientation']['w'])
+
+        orient = obj['orientation']
+        if {'r', 'p', 'y'} <= set(orient.keys()):
+            print "euler"
+            quat = Quaternion(*quaternion_from_euler(orient['r'], orient['p'], orient['y']))
+        else:
+            print "quaternion"
+            quat = Quaternion(orient['x'], orient['y'], orient['z'], orient['w'])
+
+        msg.orientation = quat
         return msg
