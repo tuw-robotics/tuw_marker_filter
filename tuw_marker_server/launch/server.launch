@@ -1,6 +1,6 @@
 <launch>
   <!-- Parameters -->
-  <arg name="mapfile" default="fiducial.yaml" />
+  <arg name="mapfile" default="cave.json" />
   <arg name="frame_id" default="map" />
 
   <node pkg="tuw_marker_server" type="tuw_marker_server.py" name="tuw_marker_server">

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-import yaml
-
+import json
 from marker_msgs.msg import MarkerWithCovarianceArray
+from utils import MarkerWithCovarianceArraySerializer
 
 class tuw_marker_server:
     def __init__(self):
@@ -16,7 +16,8 @@ class tuw_marker_server:
         self.msg.header.frame_id = self.frame_id
         self.msg.header.seq = 0;
         with open(self.mapfile, 'r') as f:
-            self.msg.markers = yaml.load(f)
+            mmsg = MarkerWithCovarianceArraySerializer.from_json(json.load(f))
+            self.msg.markers = mmsg.markers
 
         # prepare publisher for the marker map message
         self.pub = rospy.Publisher('map', MarkerWithCovarianceArray, queue_size=10)
