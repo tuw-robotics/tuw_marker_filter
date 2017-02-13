@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-import yaml
-
+import json
 from marker_msgs.msg import MarkerWithCovarianceArray
+from utils import MarkerWithCovarianceArraySerializer
 
 class tuw_marker_server:
     def __init__(self):
@@ -16,7 +16,12 @@ class tuw_marker_server:
         self.msg.header.frame_id = self.frame_id
         self.msg.header.seq = 0;
         with open(self.mapfile, 'r') as f:
-            self.msg.markers = yaml.load(f)
+            try:
+                mmsg = MarkerWithCovarianceArraySerializer.from_json(json.load(f))
+                self.msg.markers = mmsg.markers
+            except Exception as e:
+                rospy.logerr('Failed to load marker map file %s: %s' % (self.mapfile, e.message))
+                self.msg.markers = []
 
         # prepare publisher for the marker map message
         self.pub = rospy.Publisher('map', MarkerWithCovarianceArray, queue_size=10)
