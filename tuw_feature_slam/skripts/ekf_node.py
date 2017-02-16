@@ -42,7 +42,7 @@ def normalize_angle(phases):
     return np.arctan2(np.sin(phases), np.cos(phases))
 
 
-class FigureNode:
+class EKFNode:
     '''
     classdocs
     '''
@@ -240,7 +240,7 @@ class FigureNode:
             
 
 if __name__ == '__main__':
-    node = FigureNode()
+    node = EKFNode()
     node.init_node()
     node.loop()
     print "Good-by"
