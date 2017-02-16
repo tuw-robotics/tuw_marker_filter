@@ -9,6 +9,7 @@ import tf
 import numpy as np
 from nav_msgs.msg import Odometry
 from marker_msgs.msg import MarkerDetection
+from marker_msgs.msg import MarkerWithCovarianceArray
 from geometry_msgs.msg import Twist
 import matplotlib.pyplot as plt 
 from matplotlib.pyplot import imshow, pause
@@ -53,51 +54,41 @@ class FigureNode:
         self.xp = np.array([[ 0, 0 , 0]])
         self.P = np.matrix([[ 0.3, 0 , 0],[ 0, 0.3 , 0],[ 0, 0 , 0.1]])
         self.cmd = np.array([[0, 0, 0]])
-        self.y = np.zeros((0,3))
-        self.yp = np.zeros((0,3))
-        self.m = np.array([[   3, 3, np.rad2deg( 20)],
-                           [  -3, 3, np.rad2deg(  0)],
-                           [   3,-3, np.rad2deg( 80)],
-                           [  -3,-3, np.rad2deg(  0)],
-                           [   6, 0, np.rad2deg( 20)],
-                           [   0, 6, np.rad2deg(  0)],
-                           [  -6, 0, np.rad2deg( 30)],
-                           [   0,-6, np.rad2deg(  0)]] )
-        self.m_id = np.array([1,  2, 3,  4, 5, 6, 7, 8] )
+        self.z = np.zeros((0,3))
+        self.z_map = np.zeros((0,3))
+                   
         
-              
-        self.PlotOdom = PoseArrow(0.4, 'r', 0.4)        
-        self.PlotPoseCov = CovEllipse('b', 0.4)
-        self.PlotPose = PoseArrow(0.4, 'b', 1.0)
-        self.PlotLandmarks = [ Landmark(0.4, 'r', 0.0) for i in range(10)]
-        self.PlotMap = [ Landmark(0.4, 'g', 0.0) for i in range(len(self.m))]
+    def callbackMarkerMap(self, map):
+        self.m = np.zeros((len(map.markers),3))
+        self.m_id = np.zeros((len(map.markers)),dtype=np.int)
+        for i in range(len(map.markers)):
+            marker = map.markers[i].marker
+            self.m[i,0:3] = convert_ros_pose_to_array(marker.pose)
+            if len(marker.ids) > 0:
+                self.m_id[i] = int(marker.ids[0])
+            else :
+                self.m_id[i] = int(-1)
         
-        for i in range(len(self.PlotMap)):
-                self.PlotMap[i].set_pose(self.m[i,0:3])
-                self.PlotMap[i].set_alpha(0.5)
         
     def callbackOdom(self, odom):
         self.odom = convert_ros_pose_to_array(odom.pose.pose) 
-        #rospy.loginfo("Odom " + np.array_str(self.odom))
         
     def callbackMarker(self, detection):
         self.markers = detection.markers
         #rospy.loginfo("marker")
         header = detection.header        
-        self.y = np.zeros((len(detection.markers),3))
+        self.z = np.zeros((len(detection.markers),3))
         self.s = np.zeros((len(detection.markers)),dtype=np.int)
         for i in range(len(detection.markers)):
-            rospy.loginfo("id: " + str(detection.markers[i].ids))
-            self.y[i,0:3] = convert_ros_pose_to_array(detection.markers[i].pose)
+            #rospy.loginfo("id: " + str(detection.markers[i].ids))
+            self.z[i,0:3] = convert_ros_pose_to_array(detection.markers[i].pose)
             if len(detection.markers[i].ids) > 0:
                 self.s[i] = int(detection.markers[i].ids[0])
             else :
                 self.s[i] = int(-1)
-            rospy.loginfo("id = " + str(self.s[i]))
+            #rospy.loginfo("id = " + str(self.s[i]))        
         self.correction_using_landmark()
-            
-            
-            
+        
         
         
     def callbackCmd(self, twist):
@@ -166,49 +157,85 @@ class FigureNode:
         
         
     def correction_using_landmark(self):
-        self.yp = np.zeros((len(self.y),3))
-        transform_poses(self.y, self.xp, self.yp)
+        self.z_map = np.zeros((len(self.z),3))
+        transform_poses(self.z, self.xp, self.z_map)
+        if hasattr(self, 'm'):
+            for i in range(len(self.s)):
+                for j in range(len(self.m_id)):
+                    if self.s[i] == self.m_id[j]:
+                        zp = self.m[j,:]
         
         
-        #ax.scatter(self.odom[0,0], self.odom[0,1], c='r', alpha=0.5)
+        
+    def drawOdom(self):
+        if hasattr(self, 'PoseArrowOdom') == False:
+            self.PoseArrowOdom = PoseArrow(0.4, 'r', 0.4)
+            ax.add_artist(self.PoseArrowOdom)
+            
+        if hasattr(self, 'odom'):
+            self.PoseArrowOdom.set_pose(self.odom)  
+        
+        
+    def drawRobot(self):
+        if hasattr(self, 'PoseArrowRobot') == False:
+            self.PoseArrowRobot = PoseArrow(0.4, 'b', 0.4)
+            self.CovEllipseRobot = CovEllipse('b', 0.4)
+            ax.add_artist(self.PoseArrowRobot)
+            ax.add_artist(self.CovEllipseRobot)
+            
+        if hasattr(self, 'xp'):
+            self.PoseArrowRobot.set_pose(self.xp)  
+            if hasattr(self, 'P'):
+                self.CovEllipseRobot.set_cov(self.xp, self.P)
+            
+    def drawMarkerMap(self):
+        if hasattr(self, 'LandmarkMap') == False:
+            self.LandmarkMap = [ Landmark(0.4, 'g', 0.0) for i in range(10)]
+            for i in range(len(self.LandmarkMap)):
+                ax.add_artist(self.LandmarkMap[i])
+        
+        if hasattr(self, 'm'):
+            for i in range(len(self.LandmarkMap)):
+                if i < len(self.m):
+                    self.LandmarkMap[i].set_pose(self.m[i,0:3])
+                    self.LandmarkMap[i].set_alpha(0.5)
+                    self.LandmarkMap[i].set_text(self.m_id[i])
+                else: 
+                    self.LandmarkMap[i].set_alpha(0.0)
+            
+    def drawMarker(self):
+        if hasattr(self, 'LandmarkMarker') == False:
+            self.LandmarkMarker = [ Landmark(0.4, 'b', 0.0) for i in range(10)]
+            for i in range(len(self.LandmarkMarker)):
+                ax.add_artist(self.LandmarkMarker[i])
+        
+        if hasattr(self, 'z_map'):
+            for i in range(len(self.LandmarkMarker)):
+                if i < len(self.z_map):
+                    self.LandmarkMarker[i].set_pose(self.z_map[i,0:3])
+                    self.LandmarkMarker[i].set_alpha(0.5)
+                    self.LandmarkMarker[i].set_text(self.s[i])
+                else: 
+                    self.LandmarkMarker[i].set_alpha(0.0)
         
     def init_node(self):
         rospy.init_node('DiffControl', anonymous=True)
         self.sub_odom = rospy.Subscriber("odom", Odometry, self.callbackOdom)
         self.sub_cmd = rospy.Subscriber("cmd_vel", Twist, self.callbackCmd)
         self.sub_marker = rospy.Subscriber("base_marker_detection", MarkerDetection, self.callbackMarker)
+        self.sub_marker_map = rospy.Subscriber("marker_map", MarkerWithCovarianceArray, self.callbackMarkerMap)
         
         
     def loop(self):
 
-        rate = rospy.Rate(10) # 10hz
-        ax.add_artist(self.PlotPoseCov)
-        ax.add_artist(self.PlotPose)
-        ax.add_artist(self.PlotOdom)
-        for i in range(len(self.PlotLandmarks)):
-            ax.add_artist(self.PlotLandmarks[i])
-        for i in range(len(self.PlotMap)):
-            ax.add_artist(self.PlotMap[i])
-            self.PlotMap[i].set_text(self.m_id[i])
-        while not rospy.is_shutdown():
-            
-            if hasattr(self, 'odom'):
-                self.PlotOdom.set_pose(self.odom)                
-            
-            if True:                                        
-                self.PlotPose.set_pose(self.xp)
-                self.PlotPoseCov.set_cov(self.xp, self.P)
-            
-            for i in range(len(self.PlotLandmarks)):
-                if i < len(self.yp):
-                    self.PlotLandmarks[i].set_pose(self.yp[i,0:3])
-                    self.PlotLandmarks[i].set_alpha(0.5)
-                    self.PlotLandmarks[i].set_text(self.s[i])
-                else:
-                    self.PlotLandmarks[i].set_alpha(0.0)
-            
+        rate = rospy.Rate(5)
+        while not rospy.is_shutdown(): 
+            self.drawOdom()         
+            self.drawRobot()        
+            self.drawMarkerMap()   
+            self.drawMarker()        
             plt.draw()
-            pause(0.01)
+            pause(0.001)
             rate.sleep()
             
 

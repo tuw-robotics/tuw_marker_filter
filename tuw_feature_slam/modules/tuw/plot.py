@@ -80,7 +80,8 @@ class Landmark(Polygon):
                 self.ax_text.set_position([self.xy[0,0], self.xy[0,1]] )
             else:
                 self.ax_text = self.axes.text(self.xy[0,0], self.xy[0,1], self.text_label)
-            self.ax_text.set_alpha(self.get_alpha())
+            self.ax_text.set_alpha((self.get_alpha() > 0))
+            
             self.ax_text.set_color(self.text_color)
         return r
     

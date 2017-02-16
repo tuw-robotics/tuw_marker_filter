@@ -2,10 +2,12 @@
   <!-- Parameters -->
   <arg name="mapfile" default="cave.json" />
   <arg name="frame_id" default="map" />
+  <arg name="topic_map" default="marker_map" />
 
   <node pkg="tuw_marker_server" type="tuw_marker_server.py" name="tuw_marker_server">
       <param name="mapfile" value="$(find tuw_marker_server)/map/$(arg mapfile)" />
       <param name="frame_id" value="$(arg frame_id)" />
+      <remap from="map" to="$(arg topic_map)" />
   </node>
 </launch>
 
