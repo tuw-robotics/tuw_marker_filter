@@ -54,8 +54,9 @@ class EKFNode:
         self.xp = np.array([[ 0, 0 , 0]])
         self.P = np.matrix([[ 0.3, 0 , 0],[ 0, 0.3 , 0],[ 0, 0 , 0.1]])
         self.cmd = np.array([[0, 0, 0]])
-        self.z = np.zeros((0,3))
-        self.z_map = np.zeros((0,3))
+        self.z = np.zeros((0,3))       # messung im roboter frame
+        self.z_map = np.zeros((0,3))   # messung im map frame
+        self.m_robot = np.zeros((0,3))   # map in roboter frame
                    
         
     def callbackMarkerMap(self, map):
@@ -157,13 +158,24 @@ class EKFNode:
         
         
     def correction_using_landmark(self):
+        if ~hasattr(self, 'm'): return
+        
         self.z_map = np.zeros((len(self.z),3))
         transform_poses(self.z, self.xp, self.z_map)
+        self.m_robot = np.zeros((len(self.m),3))
+        transform_poses(self.m, -self.xp, self.m_robot)
         if hasattr(self, 'm'):
             for i in range(len(self.s)):
+                r = np.sqrt(self.z[i,0]*self.z[i,0] + self.z[i,1]*self.z[i,1]);
+                theta = np.arctan2(self.z[i,1],self.z[i,0]);
                 for j in range(len(self.m_id)):
+                    r_p = np.sqrt(self.m_robot[i,0]*self.m_robot[i,0] + self.m_robot[i,1]*self.m_robot[i,1]);
+                    theta_p = np.arctan2(self.m_robot[i,1],self.m_robot[i,0]);
                     if self.s[i] == self.m_id[j]:
-                        zp = self.m[j,:]
+                        M = np.matrix( [[1, 0, 0], 
+                                        [0, 1, 0], 
+                                        [0, 0, 1]]);
+                        #S = 
         
         
         
