@@ -18,10 +18,15 @@ def transform_poses(src, tf, des):
         dtheta = tf[0,2]
     s = np.sin(dtheta);
     c = np.cos(dtheta);
-    for i in range(len(src)):
-        des[i,0] =  c * src[i,0] + -s * src[i,1] + dx
-        des[i,1] = s * src[i,0] + c * src[i,1] + dy
-        des[i,2] = src[i,2] + dtheta
+    if len(src.shape) == 1:
+        des[0] = c * src[0] + -s * src[1] + dx
+        des[1] = s * src[0] +  c * src[1] + dy
+        des[2] = src[2] + dtheta
+    else :   
+        for i in range(len(src)):
+            des[i,0] = c * src[i,0] + -s * src[i,1] + dx
+            des[i,1] = s * src[i,0] + c * src[i,1] + dy
+            des[i,2] = src[i,2] + dtheta
         
 def transform_points(src, tf, des):
     if len(tf.shape) == 1:

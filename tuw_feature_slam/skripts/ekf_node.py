@@ -158,23 +158,28 @@ class EKFNode:
         
         
     def correction_using_landmark(self):
-        if ~hasattr(self, 'm'): return
+        if hasattr(self, 'm') == False: return
+        #rospy.loginfo("correction_using_landmark")   
         
         self.z_map = np.zeros((len(self.z),3))
         transform_poses(self.z, self.xp, self.z_map)
         self.m_robot = np.zeros((len(self.m),3))
         transform_poses(self.m, -self.xp, self.m_robot)
+        self.matches = []
         if hasattr(self, 'm'):
             for i in range(len(self.s)):
-                r = np.sqrt(self.z[i,0]*self.z[i,0] + self.z[i,1]*self.z[i,1]);
-                theta = np.arctan2(self.z[i,1],self.z[i,0]);
+                #q = self.z[i,0]*self.z[i,0] + self.z[i,1]*self.z[i,1];
+                #r = np.sqrt(q);
+                #theta = np.arctan2(self.z[i,1],self.z[i,0]);
                 for j in range(len(self.m_id)):
-                    r_p = np.sqrt(self.m_robot[i,0]*self.m_robot[i,0] + self.m_robot[i,1]*self.m_robot[i,1]);
-                    theta_p = np.arctan2(self.m_robot[i,1],self.m_robot[i,0]);
+                    #q_p = self.m_robot[i,0]*self.m_robot[i,0] + self.m_robot[i,1]*self.m_robot[i,1];
+                    #r_p = np.sqrt(q_p);
+                    #theta_p = np.arctan2(self.m_robot[i,1],self.m_robot[i,0]);
                     if self.s[i] == self.m_id[j]:
-                        M = np.matrix( [[1, 0, 0], 
-                                        [0, 1, 0], 
-                                        [0, 0, 1]]);
+                        if(len(self.matches) == 0): 
+                            self.matches = np.array([[i,j]])
+                        else:
+                            self.matches = np.concatenate(self.matches, np.array([[i,j]])) 
                         #S = 
         
         
@@ -216,6 +221,7 @@ class EKFNode:
                     self.LandmarkMap[i].set_alpha(0.0)
             
     def drawMarker(self):
+        #rospy.loginfo("drawMarker")  
         if hasattr(self, 'LandmarkMarker') == False:
             self.LandmarkMarker = [ Landmark(0.4, 'b', 0.0) for i in range(10)]
             for i in range(len(self.LandmarkMarker)):
@@ -223,15 +229,27 @@ class EKFNode:
         
         if hasattr(self, 'z_map'):
             for i in range(len(self.LandmarkMarker)):
-                if i < len(self.z_map):
-                    self.LandmarkMarker[i].set_pose(self.z_map[i,0:3])
+                if i < len(self.z_map): 
+                    #self.LandmarkMarker[i].set_pose(self.z_map[i,0:3])
+                    self.LandmarkMarker[i].set_ralative_pose(self.xp, self.z[i,0:3])
                     self.LandmarkMarker[i].set_alpha(0.5)
                     self.LandmarkMarker[i].set_text(self.s[i])
                 else: 
                     self.LandmarkMarker[i].set_alpha(0.0)
+    
+                
+    #def drawMarkerCorresponding(self):
+        #rospy.loginfo("drawMarker")  
+        #if hasattr(self, 'matches'): 
+            
+            #for i in range(len(self.matches.shape)):
+                #j = row[1]
+                #rospy.loginfo("drawMarkerCorresponding " + str(self.matches[i,:]))  
+                #self.LandmarkMap[j].set_alpha(1.0)
+            
         
     def init_node(self):
-        rospy.init_node('DiffControl', anonymous=True)
+        rospy.init_node('EKF-Selflocalization', anonymous=True)
         self.sub_odom = rospy.Subscriber("odom", Odometry, self.callbackOdom)
         self.sub_cmd = rospy.Subscriber("cmd_vel", Twist, self.callbackCmd)
         self.sub_marker = rospy.Subscriber("base_marker_detection", MarkerDetection, self.callbackMarker)
@@ -246,6 +264,7 @@ class EKFNode:
             self.drawRobot()        
             self.drawMarkerMap()   
             self.drawMarker()        
+            self.drawMarkerCorresponding()
             plt.draw()
             pause(0.001)
             rate.sleep()
