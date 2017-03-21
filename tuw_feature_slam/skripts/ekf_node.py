@@ -264,7 +264,7 @@ class EKFNode:
             self.drawRobot()        
             self.drawMarkerMap()   
             self.drawMarker()        
-            self.drawMarkerCorresponding()
+            #self.drawMarkerCorresponding()
             plt.draw()
             pause(0.001)
             rate.sleep()
