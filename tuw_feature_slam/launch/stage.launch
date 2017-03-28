@@ -1,0 +1,32 @@
+<launch>
+
+  <arg name="world" default="fiducial.world" />
+  <arg name="mode" default="2" />
+  <arg name="plot_data" default="false" />
+  <arg name="map_server" default="0" />
+  <arg name="mapfile" default="stage_fiducial.json" />
+  <arg name="frame_map" default="/map" />
+  <arg name="topic_map" default="marker_map" />
+  
+  <include file="$(find stage_ros)/launch/world.launch">
+    <arg name="world" default="$(arg world)" />
+  </include>
+  
+  <node pkg="mr2017_local_planner" type="mr2017_local_planner_node" name="local_planner" output="screen">
+      <param name="mode" value="$(arg mode)" />
+      <param name="plot_data" value="$(arg plot_data)" />
+      <remap from="scan" to="base_scan" />
+      <remap from="cmd_vel" to="cmd_vel" />
+      <remap from="odom" to="odom" />
+  </node>
+
+  <group if="$(arg map_server)">
+    <node pkg="tuw_marker_server" type="tuw_marker_server.py" name="tuw_marker_server">
+      <param name="mapfile" value="$(find tuw_marker_server)/map/$(arg mapfile)" />
+      <param name="frame_id" value="$(arg frame_map)" />
+      <remap from="map" to="$(arg topic_map)" />
+    </node>
+  </group>
+  
+</launch>
+

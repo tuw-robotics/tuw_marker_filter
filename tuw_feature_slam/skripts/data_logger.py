@@ -24,6 +24,13 @@ class EKFNode:
         
            
     def callbackMarkerMap(self, map): 
+        #rospy.loginfo("callbackMarkerMap")
+        for i in range(len(map.markers)):
+            marker = map.markers[i].marker
+            marker = map.markers[i].marker
+            m = convert_ros_pose_to_array(marker.pose)
+            id = int(marker.ids[0])
+            self.f.write('map: %10i, %10i, %3i, %10.4f, %10.4f, %10.4f\n' % (map.header.stamp.secs, map.header.stamp.nsecs, id, m[0,0], m[0,1], m[0,2])) 
         return 0        
         
     def callbackOdom(self, odom):  
@@ -37,11 +44,11 @@ class EKFNode:
         #rospy.loginfo("callbackMarker")  
         for i in range(len(detection.markers)):
             #rospy.loginfo("id: " + str(detection.markers[i].ids))
-            m = convert_ros_pose_to_array(detection.markers[i].pose)
+            z = convert_ros_pose_to_array(detection.markers[i].pose)
             id = -1
             if len(detection.markers[i].ids) > 0:
                 id = int(detection.markers[i].ids[0])
-            self.f.write('m: %10i, %10i, %3i, %10.4f, %10.4f, %10.4f\n' % (detection.header.stamp.secs, detection.header.stamp.nsecs, id, m[0,0], m[0,1], m[0,2])) 
+            self.f.write('marker: %10i, %10i, %3i, %10.4f, %10.4f, %10.4f\n' % (detection.header.stamp.secs, detection.header.stamp.nsecs, id, z[0,0], z[0,1], z[0,2])) 
         return 0
         
         
