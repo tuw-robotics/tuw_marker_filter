@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<MarkerWithCovarianceArray>
+    <Header>
+    </Header>
+    <MarkerWithCovariance>
+      <Marker>
+        <ids>
+        </ids>
+        <ids_confidence>
+        </ids_confidence>
+        <Pose>
+        </Pose>
+      </Marker>
+      <float64>
+      </float64>
+    </MarkerWithCovariance>
+    <MarkerWithCovariance>
+    </MarkerWithCovariance>
+</MarkerWithCovarianceArray>
