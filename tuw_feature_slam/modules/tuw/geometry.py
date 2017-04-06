@@ -5,7 +5,6 @@ Created on Jan 8, 2017
 '''
 
 import numpy as np
-import tf
 
 def transform_poses(src, tf, des):
     if len(tf.shape) == 1:

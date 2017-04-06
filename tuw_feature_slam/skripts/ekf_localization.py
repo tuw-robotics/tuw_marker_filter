@@ -4,8 +4,6 @@ Created on Jul 25, 2016
 @author: Markus Bader
 '''
 
-import rospy
-import tf
 import numpy as np
 import matplotlib.pyplot as plt 
 from matplotlib.pyplot import imshow, pause
@@ -42,36 +40,44 @@ class EKFLocalization:
         self.PoseArrowOdom = PoseArrow(0.4, 'b', 0.4)
         ax.add_artist(self.PoseArrowOdom)
         
-    
+        
     def prediction(self, data):
+        print "cmd"
         print data
-        self.PoseArrowRobot.set_pose(data)  
-        pause(0.001)
+                
+    def define_map(self, m):
+        print "map"
+        print m
         
     def define_map(self, m):
+        print "map"
         print m
         
     def correction(self, z):
+        print "marker"
         print z
         
     def loop(self):
         with open(self.filename) as f:
             for line in f:
-                data = line.split(':')
-                header = data[0].strip()                
+                elements = line.split(':')
+                header = elements[0].strip()                
                 if('odom' == header):
-                    data = list(map(float, data[1].split(",")))
+                    data = np.array(map(float, elements[1].split(",")))
                     self.PoseArrowOdom.set_pose(data) 
-                    plt.draw()
-                    pause(0.001)
+                    plt.pause(0.001)           
+                if('cmd' == header):
+                    data = np.array(map(float, elements[1].split(",")))
+                    self.prediction(data) 
+                    
                 if('marker' == header):
-                    t = list(map(int, data[1].split(",")))
-                    z = list(map(float, data[2].split(",")))
-                    self.correction(id, z)
+                    t = np.matrix(map(int,   elements[1].split(",")))
+                    z = np.matrix(map(float, elements[2].split(","))).reshape(-1,4)                    
+                    self.correction(z)
                 if('map' == header):
-                    t = list(map(int, data[1].split(",")[0:2]))
-                    m = list(map(float, data[2].split(",")))
-                    self.define_map(id, m)
+                    t = np.array(map(int,   elements[1].split(",")))
+                    m = np.array(map(float, elements[2].split(","))).reshape(-1,4) 
+                    self.define_map(m)
                     
                 #print line
                 #pause(0.001)
