@@ -48,29 +48,30 @@ class EKFLocalization:
         self.PoseArrowRobot.set_pose(data)  
         pause(0.001)
         
-    def define_map(self, id, m):
+    def define_map(self, m):
         print m
         
-    def correction(self, id, z):
+    def correction(self, z):
         print z
         
     def loop(self):
         with open(self.filename) as f:
             for line in f:
                 data = line.split(':')
-                if('odom' == data [0]):
+                header = data[0].strip()                
+                if('odom' == header):
                     data = list(map(float, data[1].split(",")))
-                    self.prediction(data)
-                if('marker' == data [0]):
+                    self.PoseArrowOdom.set_pose(data) 
+                    plt.draw()
+                    pause(0.001)
+                if('marker' == header):
+                    t = list(map(int, data[1].split(",")))
+                    z = list(map(float, data[2].split(",")))
+                    self.correction(id, z)
+                if('map' == header):
                     t = list(map(int, data[1].split(",")[0:2]))
-                    id = list(map(int, data[1].split(",")[2:3]))
-                    data = list(map(float, data[1].split(",")[4:]))
-                    self.correction(id, data)
-                if('map' == data [0]):
-                    t = list(map(int, data[1].split(",")[0:2]))
-                    id = list(map(int, data[1].split(",")[2:3]))
-                    data = list(map(float, data[1].split(",")[4:]))
-                    self.define_map(id, data)
+                    m = list(map(float, data[2].split(",")))
+                    self.define_map(id, m)
                     
                 #print line
                 #pause(0.001)
