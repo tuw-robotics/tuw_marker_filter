@@ -28,14 +28,9 @@ def transform_poses(src, tf, des):
             des[i,2] = src[i,2] + dtheta
         
 def transform_points(src, tf, des):
-    if len(tf.shape) == 1:
-        dx = tf[0]
-        dy = tf[1]
-        dtheta = tf[2]
-    else :   
-        dx = tf[0,0]
-        dy = tf[0,1]
-        dtheta = tf[0,2]
+    dx = tf.item(0)
+    dy = tf.item(1)
+    dtheta = tf.item(2)
     s = np.sin(dtheta);
     c = np.cos(dtheta);
     for i in range(len(src)):

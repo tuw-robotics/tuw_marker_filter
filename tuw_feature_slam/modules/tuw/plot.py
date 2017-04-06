@@ -9,7 +9,19 @@ from tuw.geometry import transform_points
 from tuw.geometry import transform_poses
 import numpy as np
 
-
+    
+def transform_shape(src, tf):
+    dx = tf.item(0)
+    dy = tf.item(1)
+    dtheta = tf.item(2)
+    s = np.sin(dtheta)
+    c = np.cos(dtheta)
+    des = np.zeros(src.shape)
+    for i in range(len(src)):
+        des[i,0] =  c * src[i,0] + -s * src[i,1] + dx
+        des[i,1] = s * src[i,0] + c * src[i,1] + dy
+    return des
+    
 class PoseArrow(Polygon):
     '''
     classdocs
@@ -27,19 +39,18 @@ class PoseArrow(Polygon):
         #               [0, 0], 
         #               [np.sin(-2.35) * size, np.cos(-2.35) * size]]);
                        
-        self.shape = np.array([[size, 0],
+        self.shape = np.matrix([[size, 0],
                        [np.cos(2.35) * size, np.sin(2.35) * size], 
                        [0, 0], 
-                       [np.cos(-2.35) * size, np.sin(-2.35) * size]]);
+                       [np.cos(-2.35) * size, np.sin(-2.35) * size]])
         
         self.set_alpha(tranparency)
         self.set_edgecolor(color)
         self.set_facecolor('none')
     
-    def set_pose(self, pose):
-        xy = np.copy(self.shape)
-        transform_points(self.shape, pose, xy)
-        self.set_xy(xy);
+    def set_pose(self, pose):  
+        self.set_xy(transform_shape(self.shape, pose))
+        
         
     def set_ralative_pose(self, base, pose):
         xy = np.copy(self.shape)
@@ -47,7 +58,7 @@ class PoseArrow(Polygon):
         tf = np.zeros((1,3))
         transform_poses(pose, base, tf)
         transform_points(self.shape, tf, xy)
-        self.set_xy(xy);
+        self.set_xy(transform_shape(self.shape, tf))
         
 class Landmark(Polygon):
     '''
@@ -120,9 +131,9 @@ class CovEllipse(Ellipse):
         self.set_alpha(tranparency)
     
     def set_cov(self, pose, cov):
-        x = pose[0,0]
-        y = pose[0,1]
-        theta = pose[0,2]    
+        x = pose.item(0)
+        y = pose.item(1)
+        theta = pose.item(2)
         eval, evec = np.linalg.eigh(cov[0:2,0:2])
         angle = np.arctan2(evec[0,1], evec[0,0]) 
          
