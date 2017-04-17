@@ -3,11 +3,12 @@ Created on Jan 6, 2017
 
 @author: max
 '''
-from matplotlib.patches import Polygon
 from matplotlib.patches import Ellipse
+from matplotlib.patches import Polygon
+
+import numpy as np
 from tuw.geometry import transform_points
 from tuw.geometry import transform_poses
-import numpy as np
 
     
 def transform_shape(src, tf):
@@ -19,9 +20,18 @@ def transform_shape(src, tf):
     des = np.zeros(src.shape)
     for i in range(len(src)):
         des[i,0] =  c * src[i,0] + -s * src[i,1] + dx
-        des[i,1] = s * src[i,0] + c * src[i,1] + dy
+        des[i,1] =  s * src[i,0] +  c * src[i,1] + dy
     return des
-    
+   
+def transform_pose(src, base):
+    s = np.sin(base.item(2))
+    c = np.cos(base.item(2))
+    des = np.zeros(src.shape)
+    des[0,0] =  c * src.item(0) + -s * src.item(1) + base.item(0)
+    des[1,0] =  s * src.item(0) +  c * src.item(1) + base.item(1)
+    des[2,0] =      src.item(2) + base.item(2)
+    return des
+            
 class PoseArrow(Polygon):
     '''
     classdocs
@@ -84,18 +94,15 @@ class Landmark(Polygon):
         self.set_facecolor('none')
     
     def set_pose(self, pose):
-        xy = np.copy(self.shape)
-        transform_points(self.shape, pose, xy)
-        self.set_xy(xy);
+        self.set_xy(transform_shape(self.shape, pose))
+        #xy = np.copy(self.shape)
+        #transform_points(self.shape, pose, xy)
+        #self.set_xy(xy);
         
         
     def set_ralative_pose(self, base, pose):
-        xy = np.copy(self.shape)
-        pose = pose.reshape(1,3);
-        tf = np.zeros((1,3))
-        transform_poses(pose, base, tf)
-        transform_points(self.shape, tf, xy)
-        self.set_xy(xy);
+        tf = transform_pose(pose, base)
+        self.set_xy(transform_shape(self.shape, tf))
         
     def set_text(self, id):
         self.text_label = str(int(id))

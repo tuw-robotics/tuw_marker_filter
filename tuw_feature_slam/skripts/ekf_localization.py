@@ -5,6 +5,7 @@ Created on Jul 25, 2016
 '''
 
 import numpy as np
+import math
 import matplotlib.pyplot as plt 
 from matplotlib.pyplot import imshow, pause
 import matplotlib.cbook
@@ -14,6 +15,7 @@ from matplotlib.patches import Polygon
 from tuw.plot import PoseArrow
 from tuw.plot import Landmark
 from tuw.plot import CovEllipse
+from warnings import catch_warnings
 
 fig, ax = plt.subplots()
 plt.draw()
@@ -27,6 +29,9 @@ plt.xlabel('x')
 ax.set_ylim([-12,12])
 plt.ylabel('y')
 plt.show()
+
+def angle_difference(alpha0, angle1):
+    return math.atan2(math.sin(alpha0-angle1), math.cos(alpha0-angle1))
 
 class EKFLocalization:
     '''
@@ -45,12 +50,18 @@ class EKFLocalization:
         self.CovEllipseRobot = CovEllipse('r', 0.4)
         ax.add_artist(self.PoseArrowRobot)
         ax.add_artist(self.CovEllipseRobot)
+        self.LandmarkMap = [ Landmark(0.4, 'g', 0.0) for i in range(10)]
+        for i in range(len(self.LandmarkMap)):
+            ax.add_artist(self.LandmarkMap[i])
+        self.LandmarkMarker = [ Landmark(0.4, 'b', 0.0) for i in range(10)]
+        for i in range(len(self.LandmarkMarker)):
+            ax.add_artist(self.LandmarkMarker[i])
 
         self.dt = 0.1
-        self.alpha = np.array([0.2, 0.05 , 0.1, 0.02])
+        self.alpha = np.array([1, 0.05 , 1, 0.02])
         #self.x = np.matrix([[ 0, 0 , 0]]).transpose()
         self.P = np.matrix([[ 0.3, 0 , 0],[ 0, 0.3 , 0],[ 0, 0 , 0.1]])
-        
+        self.Q = np.matrix( [[ 2,  0,  0],  [ 0,  1, 0],   [ 0, 0, 1]]);
         
                 
     def set_odom(self, pose):
@@ -60,12 +71,31 @@ class EKFLocalization:
         self.PoseArrowOdom.set_pose(self.odom) 
         
     def define_map(self, m):
-        print "map"
-        print m
+        for i in range(len(self.LandmarkMap)):
+            if i < len(m):
+                self.LandmarkMap[i].set_pose(m[i,1:4].transpose())
+                self.LandmarkMap[i].set_alpha(0.5)
+                self.LandmarkMap[i].set_text(m[i,0])
+                self.m = m
+            else: 
+                self.LandmarkMap[i].set_alpha(0.0)
         
-    def correction(self, z):
-        print "marker"
-        print z
+    def get_map(self, id):
+        for i in range(self.m.shape[1]):
+            if id == int(self.m[i,0]):
+                return [self.m[i,1], self.m[i,2]]
+        return 
+        
+        
+    def measurments(self, z):
+        for i in range(len(self.LandmarkMarker)):
+            if i < len(z) and hasattr(self, 'odom') and hasattr(self, 'm') :
+                self.LandmarkMarker[i].set_ralative_pose(self.odom, z[i,1:4].transpose())
+                self.LandmarkMarker[i].set_alpha(0.5)
+                self.LandmarkMarker[i].set_text(z[i,0])
+                self.corretion(z[i,:])
+            else: 
+                self.LandmarkMarker[i].set_alpha(0.0)
         
     
     def prediction(self, u):
@@ -117,6 +147,37 @@ class EKFLocalization:
         self.PoseArrowRobot.set_pose(self.x)  
         self.CovEllipseRobot.set_cov(self.x, self.P)       
         
+    
+    def corretion(self, z):
+        id = int(z[0,0]);
+        try:
+            [mx, my] = self.get_map(id)           # map
+            [zx, zy] = [z[0,1], z[0,2]]           # measurment
+            zt = math.atan2(zy, zx)
+            zr = math.sqrt(zx*zx + zy*zy)
+            [ux, uy, ut] = [self.x[0,0], self.x[1,0], self.x[2,0]] # predicted robot pose
+            dx = mx - ux
+            dy = my - uy
+            mq = dx * dx + dy * dy
+            mr = math.sqrt(mq)
+            mt = angle_difference(math.atan2(dy, dx), ut)
+            
+            H = np.matrix( [[-dx/mr, - dy/mr,  0], 
+                            [ dy/mq ,  -dx/mq , -1], 
+                            [    0 ,      0 ,  0]]);
+            
+            
+            S = H * self.P * H.transpose() + self.Q
+            K = self.P * H.transpose() * np.linalg.inv(S)
+            mz = np.matrix([[mr], [mt], [1]])
+            rz = np.matrix([[zr], [zt], [1]])
+            self.x = self.x + K * (rz - mz)
+            self.P = (np.identity(3) - K * H) * self.P
+            
+            print ([mr, zr, mt, zt])
+        except:
+            return
+        
     def loop(self):
         skip = 50
         loop_counter = 0
@@ -126,28 +187,32 @@ class EKFLocalization:
                 elements = line.split(':')
                 header = elements[0].strip()                
                 if('odom' == header):
-                    pose = np.matrix(map(float, elements[1].split(","))).reshape(3,-1)
+                    pose = np.matrix(list(map(float, elements[1].split(",")))).reshape(3,-1)
                     self.set_odom(pose)
                 if('true_pose' == header):
-                    data = np.matrix(map(float, elements[1].split(",")))
+                    data = np.matrix(list(map(float, elements[1].split(","))))
                     self.PoseArrowTruePose.set_pose(data) 
                 if('cmd' == header):
-                    data = np.matrix(map(float, elements[1].split(","))).reshape(2,-1)
+                    data = np.matrix(list(map(float, elements[1].split(",")))).reshape(2,-1)
                     self.prediction(data) 
                 if('marker' == header):
                     t = np.matrix(map(int,   elements[1].split(",")))
-                    #z = np.matrix(map(float, elements[2].split(","))).reshape(-1,4)                    
-                    #self.correction(z)    
+                    z = np.matrix(list(map(float, elements[2].split(",")))).reshape(-1,4) 
+                    for i in range(z.shape[0]): # Fix for wrong log file
+                        if z[i,0] > 0:
+                            z[i,0] = z[i,0] - 1 
+                    self.measurments(z)    
+                    #print (line)
                 if('map' == header):
-                    t = np.array(map(int,   elements[1].split(",")))
-                    #m = np.array(map(float, elements[2].split(","))).reshape(-1,4) 
-                    #self.define_map(m)
+                    t = np.matrix(map(int,   elements[1].split(",")))
+                    m = np.matrix(list(map(float, elements[2].split(",")))).reshape(-1,4) 
+                    self.define_map(m)
                 if( loop_counter % skip ) == 0:
                     plt.pause(0.001)  
-                    print loop_counter
+                    print (loop_counter)
             
 
 if __name__ == '__main__':
-    node = EKFLocalization("/home/max/projects/catkin/tuw_marker/src/tuw_marker_filter/tuw_feature_slam/data/log01.txt")
+    node = EKFLocalization("log01.txt")
     node.loop()
-    print "Good-by"
+    print ("Good-by")
