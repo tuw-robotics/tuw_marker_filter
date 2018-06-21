@@ -76,6 +76,11 @@ class Vehicle(object):
         self.alpha3 = 0.1
         self.alpha4 = 0.1
         self.alpha5 = 0.1
+        self.nr_of_samples = 1500
+        self.resample_rate = 0.05
+        self.sample_mode = 1 #1,2
+        self.sigma_static_position = 0.1
+        self.sigma_static_orientation = 0.2
 
     def nearest_marker(self, end_point, tolerance=0.15):
         for i in range(self.m.shape[0]):
@@ -105,7 +110,7 @@ class Vehicle(object):
         return [False, 0, 0]
 
     def update_filter(self, u):
-        dt = self.dt
+        dt = self.dt #TODO: what is the time here?
         v = u[0, 0]
         w = u[1, 0]
         eps = 0.000001
@@ -162,6 +167,42 @@ class Vehicle(object):
                     s.set_weight(s.get_weight() * (self.laser_z_hit * distance + (self.laser_z_rand / self.laser_z_max) ) )
 
         self.samples.sort(key=lambda x: x.get_weight(), reverse=True)
+        weight_sum = 0.0
+        for s in self.samples:
+            weight_sum += s.get_weight()
+        weight_max = 0.0
+        for s in self.samples:
+            s.set_weight(s.get_weight() / weight_sum)
+            weight_max = max(s.get_weight(), weight_max)
+
+    def resample(self):
+        dt = self.dt #TODO: what is the time here?
+        M = np.floor(self.nr_of_samples * self.resample_rate)
+
+        if self.sample_mode == 1:
+            idx = 0
+            while idx < M:
+                s = self.samples[idx]
+                self.samples[len(self.samples) - idx - 1] = s
+                s_position = s.get_position()
+
+                s_position[0,0] = s_position[0,0] + np.random.normal(0.0,self.sigma_static_position * dt)
+                s_position[0,1] = s_position[0,1] + np.random.normal(0.0,self.sigma_static_position * dt)
+                s.set_position(s_position)
+
+                s_orientation = s.get_orientation() + np.random.normal(0.0, self.sigma_static_orientation * dt)
+                s.set_orientation(s_orientation)
+                idx += 1
+        if self.sample_mode == 2:
+            if self.samples[0].get_weight() <= 0.00001:
+                return
+            M = self.nr_of_samples
+
+
+        elif self.sample_mode == 2:
+            pass
+        else:
+            pass
 
     def prediction(self, u):
         if hasattr(self, 'x') == False:
