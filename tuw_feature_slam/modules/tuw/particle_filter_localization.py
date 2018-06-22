@@ -24,7 +24,7 @@ class Sample:
 
     def __init__(self, pose=None, orientation=None, weight=None):
         if pose is None:
-            self.pose = np.array([0, 0], np.double)
+            self.pose = np.array([[0], [0]], np.double)
         else:
             self.pose = pose
         if orientation is None:
@@ -36,7 +36,7 @@ class Sample:
         else:
             self.weight = weight
 
-    def get_pose(self):
+    def get_position(self):
         return self.pose
 
     def get_weight(self):
@@ -45,7 +45,7 @@ class Sample:
     def get_orientation(self):
         return self.orientation
 
-    def set_pose(self, pose):
+    def set_position(self, pose):
         self.pose = pose
 
     def set_weight(self, weight):
@@ -73,6 +73,7 @@ class Vehicle(object):
         '''
         Constructor
         '''
+        self.dt = 0.1
         self.min_particles = 100
         self.max_particles = 5000
         self.laser_z_hit = 0.7
@@ -100,9 +101,11 @@ class Vehicle(object):
 
     def init_samples(self):
         for i in range(self.nr_of_samples):
-            init_pose = self.odom[0, :2] + np.random.normal(0.0, self.sigma_init_position, (1, 2))
-            init_orientation = self.odom[0, 3] + np.random.normal(0.0, self.sigma_init_orientation)
-            self.samples.append(Sample(pose=init_pose, orientation=init_orientation, weight=1.0))
+            init_pose = self.x[:2, 0] + np.random.normal(0.0, self.sigma_init_position, (2,1))
+            init_orientation = self.x[2, 0] + np.random.normal(0.0, self.sigma_init_orientation)
+            self.samples.append(Sample(pose=init_pose,
+                                       orientation=init_orientation,
+                                       weight=1.0))
 
     def nearest_marker(self, end_point, tolerance=0.15):
         for i in range(self.m.shape[0]):
@@ -132,8 +135,13 @@ class Vehicle(object):
                 return [True, self.m[i, 1], self.m[i, 2]]
         return [False, 0, 0]
 
+    def prediction(self, u):
+        if not hasattr(self, 'x'):
+            return False
+        self.update(u)
+
     def update(self, u):
-        dt = self.dt  # TODO: what is the time here?
+        dt = self.dt
         v = u[0, 0]
         w = u[1, 0]
         eps = 0.000001
@@ -159,14 +167,14 @@ class Vehicle(object):
 
             if pow_w < eps:
                 s_position[0, 0] = dt * v_hat * np.cos(s_orientation) + s_position[0, 0]
-                s_position[0, 1] = dt * v_hat * np.sin(s_orientation) + s_position[0, 1]
+                s_position[1, 0] = dt * v_hat * np.sin(s_orientation) + s_position[1, 0]
             elif pow_v < eps:
                 s_orientation = s_orientation + w_hat * dt + dt * gamma
             else:
                 m_factor = v_hat / w_hat
                 s_position[0, 0] = s_position[0, 0] - m_factor * np.sin(s_orientation) + m_factor * np.sin(
                     s_orientation + (w_hat * dt))
-                s_position[0, 1] = s_position[0, 1] + m_factor * np.cos(s_orientation) - m_factor * np.cos(
+                s_position[1, 0] = s_position[1, 0] + m_factor * np.cos(s_orientation) - m_factor * np.cos(
                     s_orientation + (w_hat * dt))
                 s_orientation = s_orientation + w_hat * dt + dt * gamma
 
@@ -213,7 +221,7 @@ class Vehicle(object):
 
                 # normalization
                 s_position[0, 0] = s_position[0, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
-                s_position[0, 1] = s_position[0, 1] + np.random.normal(0.0, self.sigma_static_position * dt)
+                s_position[1, 0] = s_position[1, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
                 s.set_position(s_position)
 
                 s_orientation = s.get_orientation() + np.random.normal(0.0, self.sigma_static_orientation * dt)
@@ -244,7 +252,7 @@ class Vehicle(object):
                     s_position = s.get_position()
 
                     s_position[0, 0] = s_position[0, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
-                    s_position[0, 1] = s_position[0, 1] + np.random.normal(0.0, self.sigma_static_position * dt)
+                    s_position[1, 0] = s_position[1, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
                     s.set_position(s_position)
 
                     s_orientation = s.get_orientation() + np.random.normal(0.0, self.sigma_static_orientation * dt)
@@ -259,3 +267,5 @@ class Vehicle(object):
     def measurments(self, z):
         if self.enable_weighting:
             self.weighting(z)
+        if self.enable_resample:
+            self.resample()
