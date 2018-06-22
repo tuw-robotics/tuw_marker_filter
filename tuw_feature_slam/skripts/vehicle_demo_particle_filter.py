@@ -35,17 +35,14 @@ def loop(vehicle, filename):
             elements = line.split(':')
             header = elements[0].strip()
             if ('odom' == header):
-                pass
-                # pose = np.matrix(list(map(float, elements[1].split(",")))).reshape(3, -1)
-                # vehicle.set_odom(pose)
+                pose = np.matrix(list(map(float, elements[1].split(",")))).reshape(3, -1)
+                vehicle.set_odom(pose)
             if ('true_pose' == header):
-                pass
-                # data = np.matrix(list(map(float, elements[1].split(","))))
-                # vehicle.PoseArrowTruePose.set_pose(data)
+                data = np.matrix(list(map(float, elements[1].split(","))))
+                vehicle.PoseArrowTruePose.set_pose(data)
             if ('cmd' == header):
-                pass
-                # data = np.matrix(list(map(float, elements[1].split(",")))).reshape(2, -1)
-                # vehicle.prediction(data)
+                data = np.matrix(list(map(float, elements[1].split(",")))).reshape(2, -1)
+                vehicle.prediction(data)
             if ('marker' == header):
                 t = np.matrix(map(int, elements[1].split(",")))
                 z = np.matrix(list(map(float, elements[2].split(",")))).reshape(-1, 4)

@@ -98,10 +98,11 @@ class Vehicle(object):
         self.sigma_init_position = 0.5
         self.sigma_init_orientation = 0.40
 
+    def init_samples(self):
         for i in range(self.nr_of_samples):
-            init_pose = self.odom[0,:2] + np.random.normal(0.0, self.sigma_init_position, (1,2))
-            init_orientation = self.odom[0,3] + np.random.normal(0.0,self.sigma_init_orientation)
-            self.samples.append(Sample(pose=init_pose, orientation=init_orientation,weight=1.0))
+            init_pose = self.odom[0, :2] + np.random.normal(0.0, self.sigma_init_position, (1, 2))
+            init_orientation = self.odom[0, 3] + np.random.normal(0.0, self.sigma_init_orientation)
+            self.samples.append(Sample(pose=init_pose, orientation=init_orientation, weight=1.0))
 
     def nearest_marker(self, end_point, tolerance=0.15):
         for i in range(self.m.shape[0]):
@@ -117,6 +118,7 @@ class Vehicle(object):
     def set_odom(self, pose):
         if hasattr(self, 'x') == False:
             self.x = pose
+            self.init_samples()
         self.odom = pose
 
     def define_map(self, m):
@@ -170,6 +172,7 @@ class Vehicle(object):
 
             s.set_position(s_position)
             s.set_orientation(s_orientation)
+
         return True
 
     def weighting(self, z):
@@ -177,7 +180,8 @@ class Vehicle(object):
         for s in self.samples:
             s.set_weight(1.0)
             for observation in z:
-                end_point_ws = observation[0,1:3]  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
+                end_point_ws = observation[0,
+                               1:3]  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
                 has_marker, id, marker_position, distance = self.nearest_marker(end_point_ws)
 
                 if not has_marker:
@@ -207,7 +211,7 @@ class Vehicle(object):
                 self.samples[len(self.samples) - idx - 1] = s
                 s_position = s.get_position()
 
-                #normalization
+                # normalization
                 s_position[0, 0] = s_position[0, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
                 s_position[0, 1] = s_position[0, 1] + np.random.normal(0.0, self.sigma_static_position * dt)
                 s.set_position(s_position)
@@ -227,7 +231,7 @@ class Vehicle(object):
             for m in range(1, M + 1):
                 if f:
                     break
-                u = r +(m-1) * (1.0 / M)
+                u = r + (m - 1) * (1.0 / M)
                 while u > c:
                     i += 1
                     if i > len(self.samples):
@@ -249,9 +253,6 @@ class Vehicle(object):
                     samples_new.append(s)
             self.samples = samples_new
             print("new particle size: {}".format(len(self.samples)))
-
-        elif self.sample_mode == 2:
-            pass
         else:
             pass
 
