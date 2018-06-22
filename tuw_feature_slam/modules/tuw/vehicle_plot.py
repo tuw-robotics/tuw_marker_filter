@@ -56,7 +56,7 @@ class VehiclePlot:
             self.sample_artists.append(ParticleCircle(np.array([s_pose.item(0),
                                                                 s_pose.item(1)]),
                                                       s_orientation,
-                                                      np.array([1.0, 0.0, 0.0])))
+                                                      np.array([s.get_weight(), 1.0 - s.get_weight(), 0.0])))
             self.ax.add_artist(self.sample_artists[-1])
 
     def set_odom(self, pose):

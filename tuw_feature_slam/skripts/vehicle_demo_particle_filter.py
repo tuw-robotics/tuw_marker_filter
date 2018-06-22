@@ -11,6 +11,7 @@ from matplotlib.pyplot import imshow, pause
 from tuw.vehicle_plot import VehiclePlot
 # from tuw.ekf_slam import Vehicle
 from tuw.particle_filter_localization import Vehicle
+import time
 
 fig, ax = plt.subplots()
 plt.draw()
@@ -27,13 +28,14 @@ plt.show()
 
 
 def loop(vehicle, filename):
-    skip = 50
+    skip = 10
     loop_counter = 0
     with open(filename) as f:
         for line in f:
             loop_counter = loop_counter + 1
             elements = line.split(':')
             header = elements[0].strip()
+            print("processing: {}".format(header))
             if ('odom' == header):
                 pose = np.matrix(list(map(float, elements[1].split(",")))).reshape(3, -1)
                 vehicle.set_odom(pose)
@@ -60,6 +62,7 @@ def loop(vehicle, filename):
                 pass
                 # plt.pause(0.001)
                 # print (loop_counter)
+            fig.canvas.draw()
 
 
 if __name__ == '__main__':

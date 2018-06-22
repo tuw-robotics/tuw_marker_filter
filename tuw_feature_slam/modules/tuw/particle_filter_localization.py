@@ -88,7 +88,7 @@ class Vehicle(object):
         self.alpha3 = 0.1
         self.alpha4 = 0.1
         self.alpha5 = 0.1
-        self.nr_of_samples = 1500
+        self.nr_of_samples = 150
         self.resample_rate = 0.05
         self.sample_mode = 1  # 1,2
         self.sigma_static_position = 0.1
