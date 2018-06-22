@@ -12,6 +12,7 @@ from matplotlib.patches import Polygon
 from tuw.plot import PoseArrow
 from tuw.plot import Landmark
 from tuw.plot import CovEllipse
+import tuw.particle_filter_localization
 
 
 class VehiclePlot:
@@ -77,10 +78,9 @@ class VehiclePlot:
         
     
     def prediction(self, u):
-        if self.vehicle.prediction(u) :
-            self.PoseArrowRobot.set_pose(self.vehicle.x)  
-            self.CovEllipseRobot.set_cov(self.vehicle.x, self.vehicle.P)       
-        
-    
-        
-            
+        if self.vehicle.prediction(u):
+            self.PoseArrowRobot.set_pose(self.vehicle.x)
+            if not isinstance(self.vehicle, tuw.particle_filter_localization.Vehicle):
+                self.CovEllipseRobot.set_cov(self.vehicle.x, self.vehicle.P)
+            else:
+                self.

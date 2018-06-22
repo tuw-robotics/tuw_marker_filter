@@ -35,14 +35,17 @@ def loop(vehicle, filename):
             elements = line.split(':')
             header = elements[0].strip()
             if ('odom' == header):
-                pose = np.matrix(list(map(float, elements[1].split(",")))).reshape(3, -1)
-                vehicle.set_odom(pose)
+                pass
+                # pose = np.matrix(list(map(float, elements[1].split(",")))).reshape(3, -1)
+                # vehicle.set_odom(pose)
             if ('true_pose' == header):
-                data = np.matrix(list(map(float, elements[1].split(","))))
-                vehicle.PoseArrowTruePose.set_pose(data)
+                pass
+                # data = np.matrix(list(map(float, elements[1].split(","))))
+                # vehicle.PoseArrowTruePose.set_pose(data)
             if ('cmd' == header):
-                data = np.matrix(list(map(float, elements[1].split(",")))).reshape(2, -1)
-                vehicle.prediction(data)
+                pass
+                # data = np.matrix(list(map(float, elements[1].split(",")))).reshape(2, -1)
+                # vehicle.prediction(data)
             if ('marker' == header):
                 t = np.matrix(map(int, elements[1].split(",")))
                 z = np.matrix(list(map(float, elements[2].split(",")))).reshape(-1, 4)
@@ -52,12 +55,14 @@ def loop(vehicle, filename):
                 vehicle.measurments(z)
                 # print (line)
             if ('map' == header):
+                pass
                 t = np.matrix(map(int, elements[1].split(",")))
                 m = np.matrix(list(map(float, elements[2].split(",")))).reshape(-1, 4)
                 vehicle.define_map(m)
             if (loop_counter % skip) == 0:
-                plt.pause(0.001)
-                print (loop_counter)
+                pass
+                # plt.pause(0.001)
+                # print (loop_counter)
 
 
 if __name__ == '__main__':
