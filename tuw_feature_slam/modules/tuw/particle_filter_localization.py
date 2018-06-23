@@ -7,6 +7,8 @@ Created on Jan 6, 2017
 import numpy as np
 import math
 
+from tuw.plot import transform_pose
+
 
 def angle_difference(alpha0, angle1):
     return math.atan2(math.sin(alpha0 - angle1), math.cos(alpha0 - angle1))
@@ -35,6 +37,9 @@ class Sample:
             self.weight = 0.0
         else:
             self.weight = weight
+
+    def get_pose(self):
+        return np.concatenate([self.pose.reshape(1, 2), np.array([[self.orientation]])], axis=1)
 
     def get_position(self):
         return self.pose
@@ -80,7 +85,7 @@ class Vehicle(object):
         self.laser_z_max = 5.0
         self.laser_z_short = 0.1
         self.laser_z_rand = 0.4
-        self.laser_sigma_hit = 0.2
+        self.laser_sigma_hit = 0.5
         self.laser_lambda_short = 0.1
         self.samples = []  # type: List[Sample]
         self.alpha1 = 0.1
@@ -94,14 +99,18 @@ class Vehicle(object):
         self.sigma_static_position = 0.1
         self.sigma_static_orientation = 0.2
         self.enable_weighting = True
-        self.enable_resample = True
+        self.enable_resample = False
         self.enable_update = True
         self.sigma_init_position = 0.5
         self.sigma_init_orientation = 0.40
+        self.weight_max = 1.0
+
+    def get_weight_max(self):
+        return self.weight_max
 
     def init_samples(self):
         for i in range(self.nr_of_samples):
-            init_pose = self.x[:2, 0] + np.random.normal(0.0, self.sigma_init_position, (2,1))
+            init_pose = self.x[:2, 0] + np.random.normal(0.0, self.sigma_init_position, (2, 1))
             init_orientation = self.x[2, 0] + np.random.normal(0.0, self.sigma_init_orientation)
             self.samples.append(Sample(pose=init_pose,
                                        orientation=init_orientation,
@@ -111,9 +120,11 @@ class Vehicle(object):
         for i in range(self.m.shape[0]):
             x_m = self.m[i, 1]
             y_m = self.m[i, 2]
+            theta_m = self.m[i, 3]
             x = end_point[0, 0]
-            y = end_point[0, 1]
-            distance = np.sqrt((x_m - x) * (x_m - x) + (y_m - y) * (y_m - y))
+            y = end_point[1, 0]
+            theta = end_point[2, 0]
+            distance = np.sqrt((x_m - x) * (x_m - x) + (y_m - y) * (y_m - y) + (theta_m - theta) * (theta_m - theta))
             if distance < tolerance:
                 return True, i, [self.m[i, 1], self.m[i, 2]], distance
         return False, None, None, None
@@ -189,24 +200,26 @@ class Vehicle(object):
             s.set_weight(1.0)
             for observation in z:
                 end_point_ws = observation[0,
-                               1:3]  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
+                               1:4].reshape(3,
+                                            1)  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
+                end_point_ws = transform_pose(end_point_ws, s.get_pose().reshape(3, 1))
                 has_marker, id, marker_position, distance = self.nearest_marker(end_point_ws)
-
+                gauss_sample = np.abs(np.random.normal(0,self.laser_z_hit))
                 if not has_marker:
                     s.set_weight(s.get_weight() * (self.laser_z_rand / self.laser_z_max))
                     continue
                 # TODO: distance from likelyhood field
                 s.set_weight(
-                    s.get_weight() * (self.laser_z_hit * distance + (self.laser_z_rand / self.laser_z_max)))
+                    s.get_weight() * (self.laser_z_hit * gauss_sample + (self.laser_z_rand / self.laser_z_max)))
 
         self.samples.sort(key=lambda x: x.get_weight(), reverse=True)
         weight_sum = 0.0
         for s in self.samples:
             weight_sum += s.get_weight()
-        weight_max = 0.0
+        self.weight_max = 0.0
         for s in self.samples:
             s.set_weight(s.get_weight() / weight_sum)
-            weight_max = max(s.get_weight(), weight_max)
+            self.weight_max = max(s.get_weight(), self.weight_max)
 
     def resample(self):
         dt = self.dt  # TODO: what is the time here?

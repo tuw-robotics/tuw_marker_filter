@@ -65,7 +65,7 @@ class PoseArrow(Polygon):
 
     def set_relative_pose(self, base, pose):
         xy = np.copy(self.shape)
-        pose = pose.reshape(1, 3);
+        pose = pose.reshape(1, 3)
         tf = np.zeros((1, 3))
         transform_poses(pose, base, tf)
         transform_points(self.shape, tf, xy)

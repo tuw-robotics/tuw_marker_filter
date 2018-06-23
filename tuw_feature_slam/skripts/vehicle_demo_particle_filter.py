@@ -54,7 +54,6 @@ def loop(vehicle, filename):
                 vehicle.measurments(z)
                 # print (line)
             if ('map' == header):
-                pass
                 t = np.matrix(map(int, elements[1].split(",")))
                 m = np.matrix(list(map(float, elements[2].split(",")))).reshape(-1, 4)
                 vehicle.define_map(m)

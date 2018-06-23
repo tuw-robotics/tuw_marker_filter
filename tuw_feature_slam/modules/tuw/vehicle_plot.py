@@ -50,11 +50,12 @@ class VehiclePlot:
         for s in self.sample_artists:
             s.remove()
         self.sample_artists = []
+        scale = 1.0 / self.vehicle.get_weight_max()
         for s in self.vehicle.samples:
             s_pose = s.get_position()
             s_orientation = s.get_orientation()
             s_p = np.concatenate([s_pose.reshape(1, 2), np.array([[s_orientation]])], axis=1)
-            arrow = PoseArrow(0.5, np.array([s.get_weight(), 1.0 - s.get_weight(), 0.0]), 1.0)
+            arrow = PoseArrow(0.5, np.array([s.get_weight() * scale, 1.0 - (s.get_weight() * scale), 0.0]), 1.0)
             arrow.set_pose(s_p)
             self.sample_artists.append(arrow)
             self.ax.add_artist(self.sample_artists[-1])
