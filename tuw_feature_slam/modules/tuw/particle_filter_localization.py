@@ -37,12 +37,19 @@ class Sample:
             self.weight = 0.0
         else:
             self.weight = weight
+        self.hit = False
+
+    def clone(self):
+        return Sample(self.pose.copy(), self.orientation, self.weight)
+
+    def set_hit(self, val):
+        self.hit = val
 
     def get_pose(self):
-        return np.concatenate([self.pose.reshape(1, 2), np.array([[self.orientation]])], axis=1)
+        return np.concatenate([self.pose.reshape(1, 2).copy(), np.array([[self.orientation]])], axis=1)
 
     def get_position(self):
-        return self.pose
+        return self.pose.copy()
 
     def get_weight(self):
         return self.weight
@@ -93,9 +100,9 @@ class Vehicle(object):
         self.alpha3 = 0.1
         self.alpha4 = 0.1
         self.alpha5 = 0.1
-        self.nr_of_samples = 150
+        self.nr_of_samples = 70
         self.resample_rate = 0.05
-        self.sample_mode = 1  # 1,2
+        self.sample_mode = 2  # 1,2
         self.sigma_static_position = 0.1
         self.sigma_static_orientation = 0.2
         self.enable_weighting = True
@@ -116,7 +123,7 @@ class Vehicle(object):
                                        orientation=init_orientation,
                                        weight=1.0))
 
-    def nearest_marker(self, end_point, tolerance=0.15):
+    def nearest_marker(self, end_point, tolerance=0.8):
         for i in range(self.m.shape[0]):
             x_m = self.m[i, 1]
             y_m = self.m[i, 2]
@@ -127,7 +134,8 @@ class Vehicle(object):
             distance = np.sqrt((x_m - x) * (x_m - x) + (y_m - y) * (y_m - y) + (theta_m - theta) * (theta_m - theta))
             if distance < tolerance:
                 return True, i, [self.m[i, 1], self.m[i, 2]], distance
-        return False, None, None, None
+            else:
+                return False, i, [self.m[i, 1], self.m[i, 2]], distance
 
     def set_odom(self, pose):
         if hasattr(self, 'x') == False:
@@ -149,7 +157,10 @@ class Vehicle(object):
     def prediction(self, u):
         if not hasattr(self, 'x'):
             return False
-        self.update(u)
+        if self.enable_resample:
+            self.resample()
+        if self.enable_update:
+            self.update(u)
 
     def update(self, u):
         dt = self.dt
@@ -198,19 +209,18 @@ class Vehicle(object):
         # TODO: do not use all beams same as in mobile robotics
         for s in self.samples:
             s.set_weight(1.0)
+            s.set_hit(False)
             for observation in z:
-                end_point_ws = observation[0,
-                               1:4].reshape(3,
-                                            1)  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
+                end_point_ws = observation[0,1:4].reshape(3,1)  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
                 end_point_ws = transform_pose(end_point_ws, s.get_pose().reshape(3, 1))
                 has_marker, id, marker_position, distance = self.nearest_marker(end_point_ws)
-                gauss_sample = np.abs(np.random.normal(0,self.laser_z_hit))
-                if not has_marker:
-                    s.set_weight(s.get_weight() * (self.laser_z_rand / self.laser_z_max))
-                    continue
-                # TODO: distance from likelyhood field
+                gauss_sample = np.abs(np.random.normal(np.abs(distance), self.laser_z_hit))
+                #if not has_marker:
+                #    s.set_weight(s.get_weight() * (self.laser_z_rand / self.laser_z_max))
+                #    continue
                 s.set_weight(
                     s.get_weight() * (self.laser_z_hit * gauss_sample + (self.laser_z_rand / self.laser_z_max)))
+                s.set_hit(True)
 
         self.samples.sort(key=lambda x: x.get_weight(), reverse=True)
         weight_sum = 0.0
@@ -255,21 +265,22 @@ class Vehicle(object):
                 u = r + (m - 1) * (1.0 / M)
                 while u > c:
                     i += 1
-                    if i > len(self.samples):
+                    if i >= len(self.samples):
                         f = True
                         break
                     c = c + self.samples[i].get_weight()
                 if not f:
                     # normalization
                     s = self.samples[i]
+                    s_new = s.clone()
                     s_position = s.get_position()
 
                     s_position[0, 0] = s_position[0, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
                     s_position[1, 0] = s_position[1, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
-                    s.set_position(s_position)
+                    s_new.set_position(s_position)
 
                     s_orientation = s.get_orientation() + np.random.normal(0.0, self.sigma_static_orientation * dt)
-                    s.set_orientation(s_orientation)
+                    s_new.set_orientation(s_orientation)
 
                     samples_new.append(s)
             self.samples = samples_new
@@ -280,5 +291,3 @@ class Vehicle(object):
     def measurments(self, z):
         if self.enable_weighting:
             self.weighting(z)
-        if self.enable_resample:
-            self.resample()

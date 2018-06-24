@@ -93,11 +93,14 @@ class VehiclePlot:
                     self.LandmarkSLAMMap[i].set_alpha(0.0)
         if isinstance(self.vehicle, tuw.particle_filter_localization.Vehicle):
             self.update_particle_artists()
+        hit_count = 0
+        for s in self.vehicle.samples:
+            if s.hit:
+                hit_count += 1
+        print("hit ratio: {}/{}".format(hit_count, len(self.vehicle.samples)))
 
     def prediction(self, u):
         if self.vehicle.prediction(u):
             self.PoseArrowRobot.set_pose(self.vehicle.x)
             if not isinstance(self.vehicle, tuw.particle_filter_localization.Vehicle):
                 self.CovEllipseRobot.set_cov(self.vehicle.x, self.vehicle.P)
-            else:
-                self.update_particle_artists()
