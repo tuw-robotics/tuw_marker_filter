@@ -6,6 +6,7 @@ Created on Jan 6, 2017
 
 import numpy as np
 import math
+import scipy.stats
 
 from tuw.plot import transform_pose
 
@@ -24,11 +25,13 @@ def angle_difference(alpha0, angle1):
 
 class Sample:
 
-    def __init__(self, pose=None, orientation=None, weight=None):
+    def __init__(self, pose=None, orientation=None, weight=None, x=None, y=None):
         if pose is None:
             self.pose = np.array([[0], [0]], np.double)
         else:
             self.pose = pose
+        if x is not None and y is not None:
+            self.pose = np.array([[x], [y]], dtype=np.double)
         if orientation is None:
             self.orientation = 0.0
         else:
@@ -100,8 +103,8 @@ class Vehicle(object):
         self.alpha3 = 0.1
         self.alpha4 = 0.1
         self.alpha5 = 0.1
-        self.nr_of_samples = 250
-        self.resample_rate = 0.05
+        self.nr_of_samples = 512
+        self.resample_rate = 0.25
         self.sample_mode = 2  # 1,2
         self.sigma_static_position = 0.05
         self.sigma_static_orientation = 0.05
@@ -111,19 +114,47 @@ class Vehicle(object):
         self.sigma_init_position = 0.10
         self.sigma_init_orientation = 0.10
         self.weight_max = 1.0
+        self.is_initialized = False
+
+    def distribute_particles_grid(self, xrange, yrange):
+        if self.is_initialized:
+            return
+        angle_division = 4
+        i = 0
+        samples_per_angle = self.nr_of_samples/angle_division
+        A = (xrange[1] - xrange[0]) * (yrange[1] - yrange[0])
+        samples_per_m2 = np.double(samples_per_angle) / np.double(A)
+        d = 1.0 / np.sqrt(samples_per_m2)
+        #d = 0.65
+        del self.samples[:]
+        xxrange = np.arange(xrange[0] + d/2.0, xrange[1],d)
+        yyrange = np.arange(yrange[0] + d/2.0, yrange[1],d)
+        angle_range = np.arange(-np.pi, np.pi, (2.0 * np.pi) / angle_division)
+        for x_in in xxrange:
+            for y_in in yyrange:
+                for theta_in in angle_range:
+                    self.samples.append(Sample(x=x_in,y=y_in,orientation=theta_in,weight=1.0))
+        self.nr_of_samples = len(self.samples)
+        print("{} samples created.".format(len(self.samples)))
+        self.is_initialized = True
 
     def get_weight_max(self):
         return self.weight_max
 
     def init_samples(self):
+        if self.is_initialized:
+            return
         for i in range(self.nr_of_samples):
             init_pose = self.x[:2, 0] + np.random.normal(0.0, self.sigma_init_position, (2, 1))
             init_orientation = self.x[2, 0] + np.random.normal(0.0, self.sigma_init_orientation)
             self.samples.append(Sample(pose=init_pose,
                                        orientation=init_orientation,
                                        weight=1.0))
+        self.is_initialized = True
 
     def nearest_marker(self, end_point, tolerance=0.8):
+        best_marker_dist = np.finfo(np.double).max
+        best_marker_id = 0
         for i in range(self.m.shape[0]):
             x_m = self.m[i, 1]
             y_m = self.m[i, 2]
@@ -132,10 +163,13 @@ class Vehicle(object):
             y = end_point[1, 0]
             theta = end_point[2, 0]
             distance = np.sqrt((x_m - x) * (x_m - x) + (y_m - y) * (y_m - y) + (theta_m - theta) * (theta_m - theta))
-            if distance < tolerance:
-                return True, i, [self.m[i, 1], self.m[i, 2]], distance
-            else:
-                return False, i, [self.m[i, 1], self.m[i, 2]], distance
+            if distance < best_marker_dist:
+                best_marker_dist = distance
+                best_marker_id = i
+        if best_marker_dist < tolerance:
+            return True, best_marker_id, [self.m[best_marker_id, 1], self.m[best_marker_id, 2]], best_marker_dist
+        else:
+            return False, best_marker_id, [self.m[best_marker_id, 1], self.m[best_marker_id, 2]], best_marker_dist
 
     def set_odom(self, pose):
         if hasattr(self, 'x') == False:
@@ -208,33 +242,42 @@ class Vehicle(object):
 
     def weighting(self, z):
         for s in self.samples:
-            s.set_weight(1.0)
-            s.set_hit(False)
+            s.set_hit(True)
+            q = 1.0
+            qr = self.laser_z_rand / self.laser_z_max
             for observation in z:
                 end_point_ws = observation[0,1:4].reshape(3,1)  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
                 end_point_ws = transform_pose(s.get_pose().reshape(3, 1), end_point_ws)
-                has_marker, id, marker_position, distance = self.nearest_marker(end_point_ws)
-                #TODO: how to handle negative weights?
-                gauss_sample = np.abs(np.random.normal(np.abs(distance), self.laser_z_hit))
+                has_marker, id, marker_position, dist = self.nearest_marker(end_point_ws)
+                qh = 0.0
+                if has_marker:
+                    gauss_sample = scipy.stats.norm.pdf(dist, self.laser_z_hit)
+                    if gauss_sample < 0.0:
+                        raise ValueError("gauss sample < 0.0 dist: {}, sample: {}".format(dist, gauss_sample))
+                    qh = self.laser_z_hit * gauss_sample
+                if (qr + qh) < 0.0:
+                    raise ValueError("{} + {} < 0.0".format(qr,qh))
+                q *= (qr + qh)
                 #if not has_marker:
                 #    s.set_weight(s.get_weight() * (self.laser_z_rand / self.laser_z_max))
                 #    continue
-                s.set_weight(
-                    s.get_weight() * (self.laser_z_hit * gauss_sample + (self.laser_z_rand / self.laser_z_max)))
-                s.set_hit(True)
-
+            s.set_weight(q)
         self.samples.sort(key=lambda x: x.get_weight(), reverse=True)
         weight_sum = 0.0
         for s in self.samples:
             weight_sum += s.get_weight()
-        self.weight_max = 0.0
+        self.weight_max = np.finfo(np.double).min
+        self.weight_min = np.finfo(np.double).max
         for s in self.samples:
             s.set_weight(s.get_weight() / weight_sum)
-            self.weight_max = max(s.get_weight(), self.weight_max)
+            self.weight_max = np.max([s.get_weight(), self.weight_max])
+            self.weight_min = np.min([s.get_weight(), self.weight_min])
         self.x = self.samples[0].get_pose().reshape(3,1)
-        print("odom pose: {}".format(self.odom))
-        print("estimated pose: {}".format(self.x))
-        print("best particle pose: {}".format(self.samples[0].get_pose()))
+        print("max weight: {}".format(self.weight_max))
+        print("min weight: {}".format(self.weight_min))
+        #print("odom pose: {}".format(self.odom))
+        #print("estimated pose: {}".format(self.x))
+        #print("best particle pose: {}".format(self.samples[0].get_pose()))
 
     def resample(self):
         dt = self.dt
@@ -258,36 +301,31 @@ class Vehicle(object):
         if self.sample_mode == 2:
             if self.samples[0].get_weight() <= 0.00001:
                 return
-            M = self.nr_of_samples
+            M = int(np.floor(self.nr_of_samples * self.resample_rate))
+            Minv = 1.0 / M
             samples_new = []
             r = np.random.uniform(0.0, 1.0 / M)
             c = self.samples[0].get_weight()
-            i = 1
-            f = False
-            for m in range(1, M + 1):
-                if f:
-                    break
-                u = r + (m - 1) * (1.0 / M)
-                while u > c:
-                    i += 1
-                    if i >= len(self.samples):
-                        f = True
-                        break
+            i = 0
+            for m in range(0, M):
+                u = r + m * Minv
+                while u > c and i < M:
                     c = c + self.samples[i].get_weight()
-                if not f:
-                    # normalization
-                    s = self.samples[i]
-                    s_new = s.clone()
-                    s_position = s.get_position()
+                    i = i + 1
 
-                    s_position[0, 0] = s_position[0, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
-                    s_position[1, 0] = s_position[1, 0] + np.random.normal(0.0, self.sigma_static_position * dt)
-                    s_new.set_position(s_position)
+                # normalization
+                s = self.samples[i]
+                s_new = s.clone()
+                s_position = s.get_position()
 
-                    s_orientation = s.get_orientation() + np.random.normal(0.0, self.sigma_static_orientation * dt)
-                    s_new.set_orientation(s_orientation)
+                s_position[0, 0] = s_position[0, 0] + np.random.normal(0.0, 1.0) * self.sigma_static_position * dt
+                s_position[1, 0] = s_position[1, 0] + np.random.normal(0.0, 1.0) * self.sigma_static_position * dt
+                s_new.set_position(s_position)
 
-                    samples_new.append(s)
+                s_orientation = s.get_orientation() + np.random.normal(0.0, 1.0) * self.sigma_static_orientation * dt
+                s_new.set_orientation(s_orientation)
+
+                samples_new.append(s)
             self.samples = samples_new
             print("new particle size: {}".format(len(self.samples)))
         else:

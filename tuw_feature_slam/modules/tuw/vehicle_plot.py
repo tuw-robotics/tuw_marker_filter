@@ -53,9 +53,7 @@ class VehiclePlot:
         scale = 1.0 / self.vehicle.get_weight_max()
         n_samples_to_process = len(self.vehicle.samples)
         for s in self.vehicle.samples:
-            s_pose = s.get_position()
-            s_orientation = s.get_orientation()
-            s_p = np.concatenate([s_pose.reshape(1, 2), np.array([[s_orientation]])], axis=1)
+            s_p = s.get_pose()
             transparency = 0.2 + 0.8 * (s.get_weight() * scale)
             arrow = PoseArrow(0.5, np.array([s.get_weight() * scale, 1.0 - (s.get_weight() * scale), 0.0]),
                               transparency)

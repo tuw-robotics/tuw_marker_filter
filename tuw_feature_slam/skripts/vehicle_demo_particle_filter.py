@@ -26,24 +26,27 @@ ax.set_ylim([-12, 12])
 plt.ylabel('y')
 plt.show()
 
+VISUALIZATION_MODE = True
 
 def loop(vehicle, filename):
     skip = 10
     loop_counter = 0
+    if VISUALIZATION_MODE:
+        vehicle.vehicle.distribute_particles_grid(np.array([-10,10]),np.array([-10,10]))
     with open(filename) as f:
         for line in f:
             loop_counter = loop_counter + 1
             elements = line.split(':')
             header = elements[0].strip()
             print("processing: {}".format(header))
-            if ('odom' == header):
+            if ('odom' == header and not VISUALIZATION_MODE):
                 pose = np.matrix(list(map(float, elements[1].split(",")))).reshape(3, -1)
                 vehicle.set_odom(pose)
             if ('true_pose' == header):
                 data = np.matrix(list(map(float, elements[1].split(","))))
                 vehicle.PoseArrowTruePose.set_pose(data)
-                vehicle.PoseArrowTruePose.set_zorder(len(vehicle.vehicle.samples))
-            if ('cmd' == header):
+                vehicle.PoseArrowTruePose.set_zorder(len(vehicle.vehicle.samples) + 2)
+            if ('cmd' == header and not VISUALIZATION_MODE):
                 data = np.matrix(list(map(float, elements[1].split(",")))).reshape(2, -1)
                 vehicle.prediction(data)
             if ('marker' == header):
@@ -53,6 +56,8 @@ def loop(vehicle, filename):
                     if z[i, 0] > 0:
                         z[i, 0] = z[i, 0] - 1
                 vehicle.measurments(z)
+                fig.canvas.draw()
+                time.sleep(5)
                 # print (line)
             if ('map' == header):
                 t = np.matrix(map(int, elements[1].split(",")))
@@ -62,7 +67,6 @@ def loop(vehicle, filename):
                 pass
                 # plt.pause(0.001)
                 # print (loop_counter)
-            fig.canvas.draw()
 
 
 if __name__ == '__main__':
