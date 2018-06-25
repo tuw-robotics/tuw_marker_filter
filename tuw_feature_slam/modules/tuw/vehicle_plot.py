@@ -51,6 +51,7 @@ class VehiclePlot:
             s.remove()
         self.sample_artists = []
         scale = 1.0 / self.vehicle.get_weight_max()
+        n_samples_to_process = len(self.vehicle.samples)
         for s in self.vehicle.samples:
             s_pose = s.get_position()
             s_orientation = s.get_orientation()
@@ -59,12 +60,16 @@ class VehiclePlot:
             arrow = PoseArrow(0.5, np.array([s.get_weight() * scale, 1.0 - (s.get_weight() * scale), 0.0]),
                               transparency)
             arrow.set_pose(s_p)
+            arrow.set_zorder(n_samples_to_process)
+            n_samples_to_process = n_samples_to_process - 1
             self.sample_artists.append(arrow)
             self.ax.add_artist(self.sample_artists[-1])
 
     def set_odom(self, pose):
         self.vehicle.set_odom(pose)
         self.PoseArrowOdom.set_pose(self.vehicle.odom)
+        if isinstance(self.vehicle, tuw.particle_filter_localization.Vehicle):
+            self.PoseArrowOdom.set_zorder(len(self.vehicle.samples) + 1)
 
     def define_map(self, m):
         self.vehicle.define_map(m)

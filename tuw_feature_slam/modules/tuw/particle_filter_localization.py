@@ -100,16 +100,16 @@ class Vehicle(object):
         self.alpha3 = 0.1
         self.alpha4 = 0.1
         self.alpha5 = 0.1
-        self.nr_of_samples = 70
+        self.nr_of_samples = 250
         self.resample_rate = 0.05
-        self.sample_mode = 1  # 1,2
+        self.sample_mode = 2  # 1,2
         self.sigma_static_position = 0.05
-        self.sigma_static_orientation = 0.1
+        self.sigma_static_orientation = 0.05
         self.enable_weighting = True
         self.enable_resample = False
         self.enable_update = True
-        self.sigma_init_position = 0.5
-        self.sigma_init_orientation = 0.40
+        self.sigma_init_position = 0.10
+        self.sigma_init_orientation = 0.10
         self.weight_max = 1.0
 
     def get_weight_max(self):
@@ -142,6 +142,7 @@ class Vehicle(object):
             self.x = pose
             self.init_samples()
         self.odom = pose
+        #self.x = pose
 
     def define_map(self, m):
         self.m = m
@@ -233,6 +234,7 @@ class Vehicle(object):
         self.x = self.samples[0].get_pose().reshape(3,1)
         print("odom pose: {}".format(self.odom))
         print("estimated pose: {}".format(self.x))
+        print("best particle pose: {}".format(self.samples[0].get_pose()))
 
     def resample(self):
         dt = self.dt

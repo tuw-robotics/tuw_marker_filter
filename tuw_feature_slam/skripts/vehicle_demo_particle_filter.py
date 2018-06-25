@@ -42,6 +42,7 @@ def loop(vehicle, filename):
             if ('true_pose' == header):
                 data = np.matrix(list(map(float, elements[1].split(","))))
                 vehicle.PoseArrowTruePose.set_pose(data)
+                vehicle.PoseArrowTruePose.set_zorder(len(vehicle.vehicle.samples))
             if ('cmd' == header):
                 data = np.matrix(list(map(float, elements[1].split(",")))).reshape(2, -1)
                 vehicle.prediction(data)
