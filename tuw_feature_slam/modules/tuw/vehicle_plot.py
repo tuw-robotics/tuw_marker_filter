@@ -55,7 +55,9 @@ class VehiclePlot:
             s_pose = s.get_position()
             s_orientation = s.get_orientation()
             s_p = np.concatenate([s_pose.reshape(1, 2), np.array([[s_orientation]])], axis=1)
-            arrow = PoseArrow(0.5, np.array([s.get_weight() * scale, 1.0 - (s.get_weight() * scale), 0.0]), 1.0)
+            transparency = 0.2 + 0.8 * (s.get_weight() * scale)
+            arrow = PoseArrow(0.5, np.array([s.get_weight() * scale, 1.0 - (s.get_weight() * scale), 0.0]),
+                              transparency)
             arrow.set_pose(s_p)
             self.sample_artists.append(arrow)
             self.ax.add_artist(self.sample_artists[-1])
@@ -93,11 +95,11 @@ class VehiclePlot:
                     self.LandmarkSLAMMap[i].set_alpha(0.0)
         if isinstance(self.vehicle, tuw.particle_filter_localization.Vehicle):
             self.update_particle_artists()
-        hit_count = 0
-        for s in self.vehicle.samples:
-            if s.hit:
-                hit_count += 1
-        print("hit ratio: {}/{}".format(hit_count, len(self.vehicle.samples)))
+            hit_count = 0
+            for s in self.vehicle.samples:
+                if s.hit:
+                    hit_count += 1
+            print("hit ratio: {}/{}".format(hit_count, len(self.vehicle.samples)))
 
     def prediction(self, u):
         if self.vehicle.prediction(u):

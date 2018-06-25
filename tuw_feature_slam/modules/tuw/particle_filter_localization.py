@@ -206,7 +206,6 @@ class Vehicle(object):
         return True
 
     def weighting(self, z):
-        # TODO: do not use all beams same as in mobile robotics
         for s in self.samples:
             s.set_weight(1.0)
             s.set_hit(False)
@@ -214,6 +213,7 @@ class Vehicle(object):
                 end_point_ws = observation[0,1:4].reshape(3,1)  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
                 end_point_ws = transform_pose(end_point_ws, s.get_pose().reshape(3, 1))
                 has_marker, id, marker_position, distance = self.nearest_marker(end_point_ws)
+                #TODO: how to handle negative weights?
                 gauss_sample = np.abs(np.random.normal(np.abs(distance), self.laser_z_hit))
                 #if not has_marker:
                 #    s.set_weight(s.get_weight() * (self.laser_z_rand / self.laser_z_max))
