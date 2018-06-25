@@ -102,9 +102,9 @@ class Vehicle(object):
         self.alpha5 = 0.1
         self.nr_of_samples = 70
         self.resample_rate = 0.05
-        self.sample_mode = 2  # 1,2
-        self.sigma_static_position = 0.1
-        self.sigma_static_orientation = 0.2
+        self.sample_mode = 1  # 1,2
+        self.sigma_static_position = 0.05
+        self.sigma_static_orientation = 0.1
         self.enable_weighting = True
         self.enable_resample = False
         self.enable_update = True
@@ -211,7 +211,7 @@ class Vehicle(object):
             s.set_hit(False)
             for observation in z:
                 end_point_ws = observation[0,1:4].reshape(3,1)  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
-                end_point_ws = transform_pose(end_point_ws, s.get_pose().reshape(3, 1))
+                end_point_ws = transform_pose(s.get_pose().reshape(3, 1), end_point_ws)
                 has_marker, id, marker_position, distance = self.nearest_marker(end_point_ws)
                 #TODO: how to handle negative weights?
                 gauss_sample = np.abs(np.random.normal(np.abs(distance), self.laser_z_hit))
@@ -230,9 +230,12 @@ class Vehicle(object):
         for s in self.samples:
             s.set_weight(s.get_weight() / weight_sum)
             self.weight_max = max(s.get_weight(), self.weight_max)
+        self.x = self.samples[0].get_pose().reshape(3,1)
+        print("odom pose: {}".format(self.odom))
+        print("estimated pose: {}".format(self.x))
 
     def resample(self):
-        dt = self.dt  # TODO: what is the time here?
+        dt = self.dt
         M = np.floor(self.nr_of_samples * self.resample_rate)
 
         if self.sample_mode == 1:
