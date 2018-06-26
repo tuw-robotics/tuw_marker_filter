@@ -127,12 +127,12 @@ class Landmark(Polygon):
 
 class ParticleCircle(Circle):
 
-    def __init__(self, pose, theta, color, **kwargs):
-        Circle.__init__(self, np.array([0, 0]), 0.2, **kwargs)
+    def __init__(self, pose, theta, color, transparency, **kwargs):
+        Circle.__init__(self, np.array([pose.item(0), pose.item(1)]),
+                        0.2, **kwargs)
         self.set_edgecolor(color)
         self.set_facecolor('none')
-        #self.set_alpha(transparency)
-        self.center = np.array([pose.item(0), pose.item(1)])
+        self.set_alpha(transparency)
         self.angle = theta
 
     def reset(self, pose, weight):

@@ -31,7 +31,7 @@ class VehiclePlot:
         ax.add_artist(self.PoseArrowOdom)
         self.PoseArrowTruePose = PoseArrow(0.4, 'k', 0.4)
         ax.add_artist(self.PoseArrowTruePose)
-        self.PoseArrowRobot = PoseArrow(0.4, 'r', 0.4)
+        self.PoseArrowRobot = PoseArrow(0.4, 'm', 0.4)
         self.CovEllipseRobot = CovEllipse('r', 0.4)
         ax.add_artist(self.PoseArrowRobot)
         ax.add_artist(self.CovEllipseRobot)
@@ -55,12 +55,14 @@ class VehiclePlot:
         for s in self.vehicle.samples:
             s_p = s.get_pose()
             transparency = 0.2 + 0.8 * (s.get_weight() * scale)
-            arrow = PoseArrow(0.5, np.array([s.get_weight() * scale, 1.0 - (s.get_weight() * scale), 0.0]),
-                              transparency)
-            arrow.set_pose(s_p)
-            arrow.set_zorder(n_samples_to_process)
+            #arrow = PoseArrow(0.5, np.array([s.get_weight() * scale, 1.0 - (s.get_weight() * scale), 0.0]),
+            #                 transparency)
+            artist = ParticleCircle(s_p,s_p.item(2),np.array([s.get_weight() * scale,
+                                                              1.0 - (s.get_weight() * scale),
+                                                              0.0]),transparency)
+            artist.set_zorder(n_samples_to_process)
             n_samples_to_process = n_samples_to_process - 1
-            self.sample_artists.append(arrow)
+            self.sample_artists.append(artist)
             self.ax.add_artist(self.sample_artists[-1])
 
     def set_odom(self, pose):

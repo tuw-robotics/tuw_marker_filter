@@ -26,7 +26,7 @@ ax.set_ylim([-12, 12])
 plt.ylabel('y')
 plt.show()
 
-VISUALIZATION_MODE = True
+VISUALIZATION_MODE = False
 
 def loop(vehicle, filename):
     skip = 10
@@ -57,7 +57,6 @@ def loop(vehicle, filename):
                         z[i, 0] = z[i, 0] - 1
                 vehicle.measurments(z)
                 fig.canvas.draw()
-                time.sleep(5)
                 # print (line)
             if ('map' == header):
                 t = np.matrix(map(int, elements[1].split(",")))
