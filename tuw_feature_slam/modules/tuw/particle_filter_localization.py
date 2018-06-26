@@ -143,7 +143,8 @@ class Vehicle(object):
         self.dt = 0.1
         self.min_particles = 100
         self.max_particles = 5000
-        self.laser_z_hit = 0.7
+        self.laser_z_hit = 0.8
+        self.laser_z_angle = 0.7
         self.laser_z_max = 5.0
         self.laser_z_short = 0.1
         self.laser_z_rand = 0.4
@@ -211,6 +212,7 @@ class Vehicle(object):
 
     def nearest_marker(self, end_point, tolerance=5000):
         best_marker_dist = np.finfo(np.double).max
+        best_angular_dist = np.finfo(np.double).max
         best_marker_id = 0
         for i in range(self.m.shape[0]):
             x_m = self.m[i, 1]
@@ -220,14 +222,16 @@ class Vehicle(object):
             y = end_point[1, 0]
             theta = end_point[2, 0]
             distance = np.sqrt((x_m - x) * (x_m - x) + (y_m - y) * (y_m - y))
+            angular_dist = math.atan2(y_m - y, x_m - x)
             if distance < best_marker_dist:
                 best_marker_dist = distance
                 best_marker_idx = i
                 best_marker_id = self.m[i,0]
+                best_angular_dist = angular_dist
         if best_marker_dist < tolerance:
-            return True, best_marker_id, [self.m[best_marker_idx, 1], self.m[best_marker_idx, 2]], best_marker_dist
+            return True, best_marker_id, [self.m[best_marker_idx, 1], self.m[best_marker_idx, 2]], best_marker_dist, best_angular_dist
         else:
-            return False, best_marker_id, [self.m[best_marker_idx, 1], self.m[best_marker_idx, 2]], best_marker_dist
+            return False, best_marker_id, [self.m[best_marker_idx, 1], self.m[best_marker_idx, 2]], best_marker_dist, best_angular_dist
 
     def set_odom(self, pose):
         if hasattr(self, 'x') == False:
@@ -315,23 +319,24 @@ class Vehicle(object):
         for s in self.samples:
             s.set_hit(False)
             q = 1.0
-            qr = self.laser_z_rand / self.laser_z_max
+            #qr = self.laser_z_rand / self.laser_z_max
             for o_id, observation in enumerate(z):
                 end_point_ws = observation[0, 1:4].reshape(3,1).copy()  # TODO: check if transform is correct and also in which coordinate system the beams endpoint is given
                 end_point_ws = transform_pose(end_point_ws.reshape(3,1), s.get_pose().reshape(3, 1))
-                has_marker, map_id, marker_position, dist = self.nearest_marker(end_point_ws)
-                qh = 0.0
+                has_marker, map_id, marker_position, dist, angular_dist = self.nearest_marker(end_point_ws)
+                qh = 1.0
                 if has_marker:
                     s.set_hit(True)
-                    gauss_sample = scipy.stats.norm.pdf(dist, 0.0, self.laser_z_hit)
-                    if gauss_sample < 0.0:
-                        raise ValueError("gauss sample < 0.0 dist: {}, sample: {}".format(dist, gauss_sample))
-                    qh = self.laser_z_hit * gauss_sample
+                    gauss_sample_dist = scipy.stats.norm.pdf(dist, 0.0, self.laser_z_hit)
+                    gauss_sample_angle = scipy.stats.norm.pdf(angular_dist, 0.0, self.laser_z_angle)
+                    if gauss_sample_dist < 0.0 or gauss_sample_angle < 0.0:
+                        raise ValueError("gauss sample < 0.0 dist: {}, sample: {}, angle: {}".format(dist, gauss_sample_dist, gauss_sample_angle))
+                    qh *= gauss_sample_dist * gauss_sample_angle
                     s.set_observation_marker_link(o_id, map_id)
                     match_info.add_match(s,o_id,map_id,dist)
-                if (qr + qh) < 0.0:
-                    raise ValueError("qr + qh = {} + {} < 0.0".format(qr, qh))
-                q *= (qr + qh)
+                if qh < 0.0:
+                    raise ValueError("qh = {} < 0.0".format(qh))
+                q *= qh
                 # if not has_marker:
                 #    s.set_weight(s.get_weight() * (self.laser_z_rand / self.laser_z_max))
                 #    continue
@@ -348,9 +353,9 @@ class Vehicle(object):
             self.weight_max = np.max([s.get_weight(), self.weight_max])
             self.weight_min = np.min([s.get_weight(), self.weight_min])
         self.x = self.samples[0].get_pose().reshape(3, 1)
-        print("max weight: {}".format(self.weight_max))
-        print("min weight: {}".format(self.weight_min))
-        print("self.particles[0] id: {}".format(self.samples[0].get_idx()))
+        # print("max weight: {}".format(self.weight_max))
+        # print("min weight: {}".format(self.weight_min))
+        # print("self.particles[0] id: {}".format(self.samples[0].get_idx()))
         #just for visualization purpose
         for k,v in self.samples[0].get_observation_marker_links().iteritems():
             z[k, 0] = v
@@ -360,7 +365,7 @@ class Vehicle(object):
 
     def resample(self):
         dt = self.dt
-        M = np.floor(self.nr_of_samples * self.resample_rate)
+        M = int(np.floor(self.nr_of_samples * self.resample_rate))
         #assumption: self.samples are sorted based on weight in decreasing order
         if self.sample_mode == 1:
             idx = 0
@@ -370,12 +375,8 @@ class Vehicle(object):
                 self.samples[len(self.samples) - idx - 1] = s_cloned
                 s_cloned.set_idx(len(self.samples) - idx - 1)
                 self.normal(s_cloned, dt)
-
                 idx += 1
         if self.sample_mode == 2:
-            if self.samples[0].get_weight() <= 0.00001:
-                return
-            M = int(np.floor(self.nr_of_samples * self.resample_rate))
             Minv = 1.0 / M
             samples_new = []
             r = np.random.uniform(0.0, 1.0 / M)
@@ -390,9 +391,7 @@ class Vehicle(object):
                 s = self.samples[i]
                 s_new = s.clone()
                 s_new.set_idx(len(samples_new))
-
                 self.normal(s_new, dt)
-
                 samples_new.append(s_new)
             self.samples = samples_new
 
